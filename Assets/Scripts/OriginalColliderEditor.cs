@@ -18,21 +18,21 @@ namespace OriginalColliderEditor
         [SerializeField] public Vector3 position;
         [SerializeField] public Vector3 rotation;
         [SerializeField] public Vector3 localScale;
-        [SerializeField] public ColliderEdge edgePos;
+        [SerializeField] public Vector3[] edgePos;
     }
 
-    //オブジェクトの頂点座標保存用
-    [System.Serializable]
-    public struct ColliderEdge
+    //頂点座標識別用
+    public struct EdgeData
     {
-        [SerializeField] public Vector3 flontRightUp;
-        [SerializeField] public Vector3 flontRightDown;
-        [SerializeField] public Vector3 flontLeftUp;
-        [SerializeField] public Vector3 flontLeftDown;
-        [SerializeField] public Vector3 backRightUp;
-        [SerializeField] public Vector3 backRightDown;
-        [SerializeField] public Vector3 backLeftUp;
-        [SerializeField] public Vector3 backLeftDown;
+        public const int flontRightUp = 0;
+        public const int flontRightDown = 1;
+        public const int flontLeftUp = 2;
+        public const int flontLeftDown = 3;
+        public const int backRightUp = 4;
+        public const int backRightDown = 5;
+        public const int backLeftUp = 6;
+        public const int backLeftDown = 7;
+        public const int maxEdgeCnt = 8;
     }
     #endregion
 
@@ -42,19 +42,32 @@ namespace OriginalColliderEditor
         #region 変数
         //二分割用定数
         private const int HALF = 2;
-
-        //頂点座標識別用
-        private enum Edge
+        //最大頂点座標数
+        private const int MAX_EDGE = EdgeData.maxEdgeCnt;
+        //Collider描画処理用（オブジェクトの辺、頂点と頂点を結ぶ）
+        private static readonly int[,] _drowLineIndex =
         {
-            flontRightUp,
-            flontRightDown,
-            flontLeftUp,
-            flontLeftDown,
-            backRightUp,
-            backRightDown,
-            backLeftUp,
-            backLeftDown
-        }
+            {EdgeData.flontRightUp,EdgeData.flontRightDown },
+            {EdgeData.flontLeftUp,EdgeData.flontLeftDown },
+            {EdgeData.flontRightUp,EdgeData.flontLeftUp },
+            {EdgeData.flontRightDown,EdgeData.flontLeftDown },
+            {EdgeData.flontRightUp,EdgeData.backRightUp },
+            {EdgeData.flontRightDown,EdgeData.backRightDown },
+            {EdgeData.flontLeftUp,EdgeData.backLeftUp },
+            {EdgeData.flontLeftDown,EdgeData.backLeftDown },
+            {EdgeData.backRightUp,EdgeData.backRightDown },
+            {EdgeData.backLeftUp,EdgeData.backLeftDown },
+            {EdgeData.backRightUp,EdgeData.backLeftUp },
+            {EdgeData.backRightDown,EdgeData.backLeftDown }
+        };
+        //Collider描画線残留時間
+        private const float LINE_VIEWTIME = 0.01f;
+
+        //基礎Vector情報保存用
+        private static readonly Vector3 _vector3Up = Vector3.up;
+        private static readonly Vector3 _vector3Right = Vector3.right;
+        private static readonly Vector3 _vector3Left = Vector3.left;
+        private static readonly Vector3 _vector3Down = Vector3.down;
         #endregion
 
         #region メソッド
@@ -86,32 +99,33 @@ namespace OriginalColliderEditor
         /// </summary>
         /// <param name="Origin">オブジェクトの中心</param>
         /// <param name="scale">オブジェクトの大きさ</param>
-        /// <returns></returns>
-        private static ColliderEdge GetObjectEdgePos(Vector3 Origin, Vector3 scale)
+        /// <returns>頂点座標格納リスト</returns>
+        private static Vector3[] GetObjectEdgePos(Vector3 Origin, Vector3 scale)
         {
             //返却用
-            ColliderEdge returnEdge = new();
+            Vector3[] returnEdge = new Vector3[MAX_EDGE];
 
             //頂点座標取得
-            returnEdge.flontRightUp = Origin + GetEdgeDistanceByScale(scale, Edge.flontRightUp);
-            returnEdge.flontRightDown = Origin + GetEdgeDistanceByScale(scale, Edge.flontRightDown);
-            returnEdge.flontLeftUp = Origin + GetEdgeDistanceByScale(scale, Edge.flontLeftUp);
-            returnEdge.flontLeftDown = Origin + GetEdgeDistanceByScale(scale, Edge.flontLeftDown);
-            returnEdge.backRightUp = Origin + GetEdgeDistanceByScale(scale, Edge.backRightUp);
-            returnEdge.backRightDown = Origin + GetEdgeDistanceByScale(scale, Edge.backRightDown);
-            returnEdge.backLeftUp = Origin + GetEdgeDistanceByScale(scale, Edge.backLeftUp);
-            returnEdge.backLeftDown = Origin + GetEdgeDistanceByScale(scale, Edge.backLeftDown);
+            returnEdge[EdgeData.flontRightUp] = Origin + GetEdgeDistanceByScale(scale, EdgeData.flontRightUp);
+            returnEdge[EdgeData.flontRightDown] = Origin + GetEdgeDistanceByScale(scale, EdgeData.flontRightDown);
+            returnEdge[EdgeData.flontLeftUp] = Origin + GetEdgeDistanceByScale(scale, EdgeData.flontLeftUp);
+            returnEdge[EdgeData.flontLeftDown] = Origin + GetEdgeDistanceByScale(scale, EdgeData.flontLeftDown);
+            returnEdge[EdgeData.backRightUp] = Origin + GetEdgeDistanceByScale(scale, EdgeData.backRightUp);
+            returnEdge[EdgeData.backRightDown] = Origin + GetEdgeDistanceByScale(scale, EdgeData.backRightDown);
+            returnEdge[EdgeData.backLeftUp] = Origin + GetEdgeDistanceByScale(scale, EdgeData.backLeftUp);
+            returnEdge[EdgeData.backLeftDown] = Origin + GetEdgeDistanceByScale(scale, EdgeData.backLeftDown);
 
             return returnEdge;
         }
 
         /// <summary>
-        /// <para>GetScaleEdgeDis</para>
+        /// <para>GetEdgeDistanceByScale</para>
+        /// <para>指定された頂点座標を取得します</para>
         /// </summary>
-        /// <param name="scale"></param>
-        /// <param name="edge"></param>
-        /// <returns></returns>
-        private static Vector3 GetEdgeDistanceByScale(Vector3 scale, Edge edge)
+        /// <param name="scale">オブジェクトの大きさ</param>
+        /// <param name="edge">指定された頂点</param>
+        /// <returns>指定された頂点座標</returns>
+        private static Vector3 GetEdgeDistanceByScale(Vector3 scale, int edge)
         {
             //返却用
             Vector3 returnPos;
@@ -123,42 +137,42 @@ namespace OriginalColliderEditor
             switch (edge)
             {
                 //前方右上 ----------------------------------------------------------------
-                case Edge.flontRightUp:
+                case EdgeData.flontRightUp:
                     returnPos = Vector3.right * scale.x + Vector3.up * scale.y + Vector3.forward * scale.z;
                     break;
 
                 //前方右下 ----------------------------------------------------------------
-                case Edge.flontRightDown:
+                case EdgeData.flontRightDown:
                     returnPos = Vector3.right * scale.x + Vector3.down * scale.y + Vector3.forward * scale.z;
                     break;
 
                 //前方左上 ----------------------------------------------------------------
-                case Edge.flontLeftUp:
+                case EdgeData.flontLeftUp:
                     returnPos = Vector3.left * scale.x + Vector3.up * scale.y + Vector3.forward * scale.z;
                     break;
 
                 //前方左下 ----------------------------------------------------------------
-                case Edge.flontLeftDown:
+                case EdgeData.flontLeftDown:
                     returnPos = Vector3.left * scale.x + Vector3.down * scale.y + Vector3.forward * scale.z;
                     break;
 
                 //後方右上 ----------------------------------------------------------------
-                case Edge.backRightUp:
+                case EdgeData.backRightUp:
                     returnPos = Vector3.right * scale.x + Vector3.up * scale.y + Vector3.back * scale.z;
                     break;
 
                 //後方右下 ----------------------------------------------------------------
-                case Edge.backRightDown:
+                case EdgeData.backRightDown:
                     returnPos = Vector3.right * scale.x + Vector3.down * scale.y + Vector3.back * scale.z;
                     break;
 
                 //後方左上 ----------------------------------------------------------------
-                case Edge.backLeftUp:
+                case EdgeData.backLeftUp:
                     returnPos = Vector3.left * scale.x + Vector3.up * scale.y + Vector3.back * scale.z;
                     break;
 
                 //後方左下 ----------------------------------------------------------------
-                case Edge.backLeftDown:
+                case EdgeData.backLeftDown:
                     returnPos = Vector3.left * scale.x + Vector3.down * scale.y + Vector3.back * scale.z;
                     break;
 
@@ -169,6 +183,68 @@ namespace OriginalColliderEditor
             }
 
             return returnPos;
+        }
+
+        /// <summary>
+        /// <para>CheckColliderFromTransform</para>
+        /// <para>Colliderを更新する必要があるか検査します</para>
+        /// </summary>
+        /// <returns>更新可否判定</returns>
+        public static bool CheckColliderFromTransform(Transform transform, ColliderData collider)
+        {
+            //Transform情報とCollider情報を比較し、変更があった場合は更新が必要であると判定します
+
+            //座標比較
+            if(transform.position != collider.position)
+            {
+                return true;
+            }
+
+            //角度比較
+            if(transform.rotation.eulerAngles != collider.rotation)
+            {
+                return true;
+            }
+
+            //大きさ比較
+            if(transform.localScale != collider.localScale)
+            {
+                return true;
+            }
+
+            //すべて同じである
+            return false;
+        }
+
+
+        /// <summary>
+        /// <para>DrowCollider</para>
+        /// <para>コライダーを描画します</para>
+        /// </summary>
+        /// <param name="edge"></param>
+        public static void DrowCollider(ColliderData col)
+        {
+            //頂点座標
+            Vector3[] edgePoss = col.edgePos;
+            //描画リスト参照用
+            int startPosIndex = 0;
+            int endPosIndex = 1;
+            //描画対象の頂点座標
+            Vector3 startPos;
+            Vector3 endPos;
+
+            Debug.Log(edgePoss.Length + "----");
+            //Colliderの辺を描画
+            for(int lineIndex = 0;lineIndex < _drowLineIndex.GetLength(0); lineIndex++)
+            {
+                Debug.Log(lineIndex);
+                //頂点座標を設定
+                startPos = edgePoss[_drowLineIndex[lineIndex, startPosIndex]];
+                endPos = edgePoss[_drowLineIndex[lineIndex, endPosIndex]];
+
+                //描画
+                Debug.DrawLine(startPos, endPos, Color.green,LINE_VIEWTIME);
+            }
         }
         #endregion
     }

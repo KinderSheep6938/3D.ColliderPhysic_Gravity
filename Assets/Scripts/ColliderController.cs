@@ -39,8 +39,10 @@ public class ColliderController : MonoBehaviour
     /// </summary>
     private void Update()
     {
-        
+        _myCol = ColliderEditor.SetColliderDataByCube(_transform);
+        ColliderEditor.DrowCollider(_myCol);
     }
+
 
 
 
