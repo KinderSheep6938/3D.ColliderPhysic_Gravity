@@ -21,7 +21,8 @@ namespace OriginalColliderEditor
         [SerializeField] public Vector3[] edgePos;
     }
 
-    //頂点座標識別用
+    //頂点座標共通識別用
+    //前方 > 右側 > 上側 の関係でIDを振り分ける
     public struct EdgeData
     {
         public const int flontRightUp = 0;
@@ -47,14 +48,17 @@ namespace OriginalColliderEditor
         //Collider描画処理用（オブジェクトの辺、頂点と頂点を結ぶ）
         private static readonly int[,] _drowLineIndex =
         {
+            //前方４辺
             {EdgeData.flontRightUp,EdgeData.flontRightDown },
             {EdgeData.flontLeftUp,EdgeData.flontLeftDown },
             {EdgeData.flontRightUp,EdgeData.flontLeftUp },
             {EdgeData.flontRightDown,EdgeData.flontLeftDown },
+            //前方から後方への４辺
             {EdgeData.flontRightUp,EdgeData.backRightUp },
             {EdgeData.flontRightDown,EdgeData.backRightDown },
             {EdgeData.flontLeftUp,EdgeData.backLeftUp },
             {EdgeData.flontLeftDown,EdgeData.backLeftDown },
+            //後方４辺
             {EdgeData.backRightUp,EdgeData.backRightDown },
             {EdgeData.backLeftUp,EdgeData.backLeftDown },
             {EdgeData.backRightUp,EdgeData.backLeftUp },
@@ -63,11 +67,19 @@ namespace OriginalColliderEditor
         //Collider描画線残留時間
         private const float LINE_VIEWTIME = 0.01f;
 
+        //頂点座標の各次元の正負判別用
+        private const int EDGE_JUDGE_AXISX = 0;
+        private const int EDGE_JUDGE_AXISY = 0;
+        private const int EDGE_JUDGE_AXISZ = 4;
+
         //基礎Vector情報保存用
         private static readonly Vector3 _vector3Up = Vector3.up;
         private static readonly Vector3 _vector3Right = Vector3.right;
-        private static readonly Vector3 _vector3Left = Vector3.left;
-        private static readonly Vector3 _vector3Down = Vector3.down;
+        private static readonly Vector3 _vector3Flont = Vector3.forward;
+        #endregion
+
+        #region プロパティ
+
         #endregion
 
         #region メソッド
@@ -90,6 +102,7 @@ namespace OriginalColliderEditor
             //オブジェクトの頂点座標設定
             returnData.edgePos = GetObjectEdgePos(returnData.position, returnData.localScale);
 
+            Debug.Log("Create");
             return returnData;
         }
 
@@ -133,89 +146,83 @@ namespace OriginalColliderEditor
             //Scaleの半分を増加分として設定
             scale /= HALF;
 
-            //指定された頂点の座標を取得
-            switch (edge)
-            {
-                //前方右上 ----------------------------------------------------------------
-                case EdgeData.flontRightUp:
-                    returnPos = Vector3.right * scale.x + Vector3.up * scale.y + Vector3.forward * scale.z;
-                    break;
+            //各方向の差異を算出
+            Vector3 scaleDisX = _vector3Right * scale.x * JudgeEdgeAxisX(edge);
+            Vector3 scaleDisY = _vector3Up * scale.y * JudgeEdgeAxisY(edge);
+            Vector3 scaleDisZ = _vector3Flont * scale.z * JudgeEdgeAxisZ(edge);
 
-                //前方右下 ----------------------------------------------------------------
-                case EdgeData.flontRightDown:
-                    returnPos = Vector3.right * scale.x + Vector3.down * scale.y + Vector3.forward * scale.z;
-                    break;
-
-                //前方左上 ----------------------------------------------------------------
-                case EdgeData.flontLeftUp:
-                    returnPos = Vector3.left * scale.x + Vector3.up * scale.y + Vector3.forward * scale.z;
-                    break;
-
-                //前方左下 ----------------------------------------------------------------
-                case EdgeData.flontLeftDown:
-                    returnPos = Vector3.left * scale.x + Vector3.down * scale.y + Vector3.forward * scale.z;
-                    break;
-
-                //後方右上 ----------------------------------------------------------------
-                case EdgeData.backRightUp:
-                    returnPos = Vector3.right * scale.x + Vector3.up * scale.y + Vector3.back * scale.z;
-                    break;
-
-                //後方右下 ----------------------------------------------------------------
-                case EdgeData.backRightDown:
-                    returnPos = Vector3.right * scale.x + Vector3.down * scale.y + Vector3.back * scale.z;
-                    break;
-
-                //後方左上 ----------------------------------------------------------------
-                case EdgeData.backLeftUp:
-                    returnPos = Vector3.left * scale.x + Vector3.up * scale.y + Vector3.back * scale.z;
-                    break;
-
-                //後方左下 ----------------------------------------------------------------
-                case EdgeData.backLeftDown:
-                    returnPos = Vector3.left * scale.x + Vector3.down * scale.y + Vector3.back * scale.z;
-                    break;
-
-                //例外 --------------------------------------------------------------------
-                default:
-                    returnPos = Vector3.zero;
-                    break;
-            }
+            //算出結果を合計する
+            returnPos = scaleDisX + scaleDisY + scaleDisZ;
 
             return returnPos;
         }
 
+        #region 頂点座標IDから各軸の正負を取得
         /// <summary>
-        /// <para>CheckColliderFromTransform</para>
-        /// <para>Colliderを更新する必要があるか検査します</para>
+        /// <para>JudgeEdgeAxisX</para>
+        /// <para>指定された頂点座標のX軸の正負を取得します</para>
         /// </summary>
-        /// <returns>更新可否判定</returns>
-        public static bool CheckColliderFromTransform(Transform transform, ColliderData collider)
+        /// <param name="edge">頂点座標</param>
+        /// <returns>頂点座標のX軸値の正負</returns>
+        private static int JudgeEdgeAxisX(int edge)
         {
-            //Transform情報とCollider情報を比較し、変更があった場合は更新が必要であると判定します
+            //右側を判定 （前方座標群である）
+            bool isRight = (edge / HALF == EDGE_JUDGE_AXISX);
 
-            //座標比較
-            if(transform.position != collider.position)
+            //前述の判定を引継ぎ
+            //右側を判定 かつ 後方座標群である
+            isRight = isRight || ((edge - EDGE_JUDGE_AXISZ) / HALF == EDGE_JUDGE_AXISX && EDGE_JUDGE_AXISZ <= edge);
+
+            //右方向である
+            if (isRight)
             {
-                return true;
+                return 1;
             }
-
-            //角度比較
-            if(transform.rotation.eulerAngles != collider.rotation)
-            {
-                return true;
-            }
-
-            //大きさ比較
-            if(transform.localScale != collider.localScale)
-            {
-                return true;
-            }
-
-            //すべて同じである
-            return false;
+            //左方向である
+            return -1;
         }
 
+
+        /// <summary>
+        /// <para>JudgeEdgeAxisY</para>
+        /// <para>指定された頂点座標のY軸の正負を取得します</para>
+        /// </summary>
+        /// <param name="edge">頂点座標</param>
+        /// <returns>頂点座標のY軸値の正負</returns>
+        private static int JudgeEdgeAxisY(int edge)
+        {
+            //上側を判定
+            bool isUp = (edge % HALF == EDGE_JUDGE_AXISY);
+
+            //上方向である
+            if (isUp)
+            {
+                return 1;
+            }
+            //下方向である
+            return -1;
+        }
+
+        /// <summary>
+        /// <para>EdgeJudgeAxisZ</para>
+        /// <para>指定された頂点座標のZ軸の正負を取得します</para>
+        /// </summary>
+        /// <param name="edge">頂点座標</param>
+        /// <returns>頂点座標のZ軸値の正負</returns>
+        private static int JudgeEdgeAxisZ(int edge)
+        {
+            //前方側を判定
+            bool isFlont = (edge < EDGE_JUDGE_AXISZ);
+
+            //前方である
+            if (isFlont)
+            {
+                return 1;
+            }
+            //後方である
+            return -1;
+        }
+        #endregion 
 
         /// <summary>
         /// <para>DrowCollider</para>
