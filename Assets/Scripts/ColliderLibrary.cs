@@ -15,11 +15,11 @@ namespace ColliderLibrary
     public struct ColliderData
     {
         //Transform情報
-        [SerializeField] public Vector3 position;
-        [SerializeField] public Vector3 rotation;
-        [SerializeField] public Vector3 localScale;
+        [SerializeField,ReadOnly] public Vector3 position;
+        [SerializeField,ReadOnly] public Quaternion rotation;
+        [SerializeField,ReadOnly] public Vector3 localScale;
         //頂点座標保管
-        [SerializeField] public Vector3[] edgePos;
+        [SerializeField,ReadOnly] public Vector3[] edgePos;
     }
 
     //頂点座標共通識別用

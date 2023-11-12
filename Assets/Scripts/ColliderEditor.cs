@@ -19,11 +19,6 @@ public static class ColliderEditor
     private const int EDGE_JUDGE_AXISX = 0;
     private const int EDGE_JUDGE_AXISY = 0;
     private const int EDGE_JUDGE_AXISZ = 4;
-
-    //基礎Vector情報保存用
-    private static readonly Vector3 _vector3Up = Vector3.up;
-    private static readonly Vector3 _vector3Right = Vector3.right;
-    private static readonly Vector3 _vector3Flont = Vector3.forward;
     #endregion
 
     #region プロパティ
@@ -44,13 +39,13 @@ public static class ColliderEditor
 
         //アクセスを簡略にする
         returnData.position = targetObj.position;
-        returnData.rotation = targetObj.rotation.eulerAngles;
+        returnData.rotation = targetObj.rotation;
         returnData.localScale = targetObj.localScale;
 
         //オブジェクトの頂点座標設定
-        returnData.edgePos = GetObjectEdgePos(returnData.position, returnData.localScale);
+        returnData.edgePos = GetObjectEdgePos(targetObj);
 
-        Debug.Log("Create");
+        //生成完了
         return returnData;
     }
 
@@ -58,24 +53,24 @@ public static class ColliderEditor
     /// <para>GetObjectEdgePos</para>
     /// <para>対象のオブジェクト情報から頂点座標を取得します</para>
     /// </summary>
-    /// <param name="Origin">オブジェクトの中心</param>
-    /// <param name="scale">オブジェクトの大きさ</param>
+    /// <param name="target">対象オブジェクト</param>
     /// <returns>頂点座標格納リスト</returns>
-    private static Vector3[] GetObjectEdgePos(Vector3 Origin, Vector3 scale)
+    private static Vector3[] GetObjectEdgePos(Transform target)
     {
         //返却用
         Vector3[] returnEdge = new Vector3[MAX_EDGE];
+        //オブジェクトの中心座標
+        Vector3 origin = target.position;
+        //オブジェクトの大きさ
+        Vector3 scale = target.localScale;
 
-        //頂点座標取得
-        returnEdge[EdgeData.flontRightUp] = Origin + GetEdgeDistanceByScale(scale, EdgeData.flontRightUp);
-        returnEdge[EdgeData.flontRightDown] = Origin + GetEdgeDistanceByScale(scale, EdgeData.flontRightDown);
-        returnEdge[EdgeData.flontLeftUp] = Origin + GetEdgeDistanceByScale(scale, EdgeData.flontLeftUp);
-        returnEdge[EdgeData.flontLeftDown] = Origin + GetEdgeDistanceByScale(scale, EdgeData.flontLeftDown);
-        returnEdge[EdgeData.backRightUp] = Origin + GetEdgeDistanceByScale(scale, EdgeData.backRightUp);
-        returnEdge[EdgeData.backRightDown] = Origin + GetEdgeDistanceByScale(scale, EdgeData.backRightDown);
-        returnEdge[EdgeData.backLeftUp] = Origin + GetEdgeDistanceByScale(scale, EdgeData.backLeftUp);
-        returnEdge[EdgeData.backLeftDown] = Origin + GetEdgeDistanceByScale(scale, EdgeData.backLeftDown);
+        //全て頂点座標を取得
+        for(int edge = 0;edge < EdgeData.maxEdgeCnt; edge++)
+        {
+            returnEdge[edge] = origin + GetEdgeDistanceByScale(scale, edge, target);
+        }
 
+        //取得完了
         return returnEdge;
     }
 
@@ -85,8 +80,9 @@ public static class ColliderEditor
     /// </summary>
     /// <param name="scale">オブジェクトの大きさ</param>
     /// <param name="edge">指定された頂点</param>
+    /// <param name="localObj">ローカル変換用オブジェクト</param>
     /// <returns>指定された頂点座標</returns>
-    private static Vector3 GetEdgeDistanceByScale(Vector3 scale, int edge)
+    private static Vector3 GetEdgeDistanceByScale(Vector3 scale, int edge, Transform localObj)
     {
         //返却用
         Vector3 returnPos;
@@ -95,13 +91,14 @@ public static class ColliderEditor
         scale /= HALF;
 
         //各方向の差異を算出
-        Vector3 scaleDisX = _vector3Right * scale.x * JudgeEdgeAxisX(edge);
-        Vector3 scaleDisY = _vector3Up * scale.y * JudgeEdgeAxisY(edge);
-        Vector3 scaleDisZ = _vector3Flont * scale.z * JudgeEdgeAxisZ(edge);
+        Vector3 scaleDisX = (localObj.right   * scale.x) * JudgeEdgeAxisX(edge);
+        Vector3 scaleDisY = (localObj.up      * scale.y) * JudgeEdgeAxisY(edge);
+        Vector3 scaleDisZ = (localObj.forward * scale.z) * JudgeEdgeAxisZ(edge);
 
         //算出結果を合計する
         returnPos = scaleDisX + scaleDisY + scaleDisZ;
-
+        
+        //算出完了
         return returnPos;
     }
 
