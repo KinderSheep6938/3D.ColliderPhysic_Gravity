@@ -13,6 +13,9 @@ public static class ColliderManager
     #region 変数
     //二分割用定数
     private const int HALF = 2;
+    //直線検査の最小距離
+    private const float MIN_CHECK_DISTANCE = 0.01f;
+
     //Collider情報共有用
     private static List<OriginalCollider> _worldInColliders = new();
 
@@ -138,7 +141,7 @@ public static class ColliderManager
         float minDistance = -1;
 
         //オブジェクト保存用
-        Transform localObj = target.transform;
+        Transform localObj = target.MyTransform;
         //オブジェクトの中心座標
         Vector3 origin = target.Data.position;
         //ローカル変換用
@@ -181,7 +184,7 @@ public static class ColliderManager
     private static bool CheckPointInCollider(Vector3 check, OriginalCollider collider)
     {
         //検査対象目線のローカル座標
-        Vector3 localPos = collider.transform.InverseTransformPoint(check);
+        Vector3 localPos = collider.MyTransform.InverseTransformPoint(check);
         //Debug.Log(localPos + "local");
 
         //Debug.Log(localPos + "localedge");
