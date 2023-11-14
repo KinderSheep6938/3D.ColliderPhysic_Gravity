@@ -85,7 +85,7 @@ public static class ColliderManager
             }
 
             //自身の頂点座標 から 最も近い頂点座標 を格納
-            nearEdge = GetNearEdgeByOrigin(target, collider.Data.edgePos);
+            nearEdge = GetNearEdgeByCollider(target, collider.Data.edgePos);
             //最も近い頂点座標 が 検査対象のCollider の内部にある
             if (CheckPointInCollider(nearEdge, target))
             {
@@ -95,7 +95,7 @@ public static class ColliderManager
             }
 
             //検査対象の頂点座標 から 最も近い頂点座標 を格納
-            nearEdge = GetNearEdgeByOrigin(collider, target.Data.edgePos);
+            nearEdge = GetNearEdgeByCollider(collider, target.Data.edgePos);
             //最も近い頂点座標 が 自身のCollider の内部にある
             if(CheckPointInCollider(nearEdge, collider))
             {
@@ -127,13 +127,13 @@ public static class ColliderManager
     }
 
     /// <summary>
-    /// <para>GetNearEdgeByOrigin</para>
-    /// <para>対象のオブジェクトから相対的に最も近い頂点座標を取得します</para>
+    /// <para>GetNearEdgeByCollider</para>
+    /// <para>対象のColliderから相対的に最も近い頂点座標を取得します</para>
     /// </summary>
-    /// <param name="target">原点</param>
+    /// <param name="target">オブジェクト情報</param>
     /// <param name="edges">頂点座標リスト</param>
     /// <returns>最も近い頂点座標</returns>
-    private static Vector3 GetNearEdgeByOrigin(OriginalCollider target, Vector3[] edges)
+    private static Vector3 GetNearEdgeByCollider(OriginalCollider target, Vector3[] edges)
     {
         //算出結果保存用
         float distance;
@@ -211,6 +211,20 @@ public static class ColliderManager
 
         //内部である
         return true;
+    }
+
+    /// <summary>
+    /// <para>CheckLineOverlapByCollider</para>
+    /// <para>線がColliderに重なるか検査します</para>
+    /// </summary>
+    /// <returns></returns>
+    private static bool CheckLineOverlapByCollider(Vector3 startPoint, Vector3 endPoint, OriginalCollider collider)
+    {
+        //線の始点と終点をローカル変換
+        Vector3 localStart = collider.MyTransform.InverseTransformPoint(startPoint);
+        Vector3 localEnd = collider.MyTransform.InverseTransformPoint(endPoint);
+
+        return false;
     }
     #endregion
 }
