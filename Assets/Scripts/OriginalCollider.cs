@@ -57,8 +57,6 @@ public class OriginalCollider : MonoBehaviour
         _myCol = ColliderEditor.SetColliderDataByCube(_transform);
         //Collider情報を管理マネージャーに設定
         ColliderManager.SetColliderToWorld(this);
-
-        Debug.Log(new Vector3(0, 1, 0) - new Vector3(1, 0, 1));
         
     }
     

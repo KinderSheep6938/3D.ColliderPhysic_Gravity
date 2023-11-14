@@ -13,19 +13,43 @@ public static class ColliderManager
     #region 変数
     //二分割用定数
     private const int HALF = 2;
-    //直線検査の最小距離
-    private const float MIN_CHECK_DISTANCE = 0.01f;
+
+    //基礎Vector情報保存用
+    private static readonly Vector3 _vectorZero = Vector3.zero;
+    private static readonly Vector3 _vector3Up = Vector3.up;
+    private static readonly Vector3 _vector3Right = Vector3.right;
+    private static readonly Vector3 _vector3Flont = Vector3.forward;
+    private static readonly Vector2 _vector2Up = Vector2.up;
+    private static readonly Vector2 _vector2Right = Vector2.right;
+
+    //衝突判定範囲の最大値
+    private static readonly Vector3 _collisionRange = Vector3.one / HALF;
+
+    //リスト初期化用
+    private static readonly Vector2[] _resetReturnList = new Vector2[2];
+
+    //面における頂点座標
+    private static readonly Vector2[] _planeEdge =
+    {
+        new Vector2(0.5f,0.5f),         //右上
+        new Vector2(0.5f,-0.5f),        //右下
+        new Vector2(-0.5f,0.5f),        //左上
+        new Vector2(-0.5f,-0.5f)        //左下
+    };
+    //面における頂点座標のID（上記の頂点座標に対応）
+    private struct EdgeByPlane
+    {
+        public const int rightUp = 0;   //右上
+        public const int rightDown = 1; //右下
+        public const int leftUp = 2;    //左上
+        public const int leftDown = 3;  //左下
+    }
 
     //Collider情報共有用
     private static List<OriginalCollider> _worldInColliders = new();
 
-    //基礎Vector情報保存用
-    private static readonly Vector3 _vector3Up    = Vector3.up;
-    private static readonly Vector3 _vector3Right = Vector3.right;
-    private static readonly Vector3 _vector3Flont = Vector3.forward;
 
-    //Colliderの衝突判定範囲
-    private static readonly Vector3 _collisionRange = Vector3.one / HALF;
+
 
     #endregion
 
@@ -224,6 +248,202 @@ public static class ColliderManager
         Vector3 localStart = collider.MyTransform.InverseTransformPoint(startPoint);
         Vector3 localEnd = collider.MyTransform.InverseTransformPoint(endPoint);
 
+        //各次元ごとの面で判定を行う
+        //Z面（X軸 と Y軸）
+        Vector2 vec2Start = _vector3Right * localStart.x + _vector3Up * localStart.y;
+        Vector2 vec2End = _vector3Right * localEnd.x + _vector3Up * localEnd.y;
+        //面に重ならない場合は、Colliderに重ならないと判定する
+        if (!CheckLineOverlapByPlane(vec2Start, vec2End))
+        {
+            return false;
+        }
+        return true;
+    }
+
+    /// <summary>
+    /// <para>CheckLineOverlapByPlane</para>
+    /// <para>線が面に重なるか検査します</para>
+    /// </summary>
+    /// <param name="startPoint">線の始点</param>
+    /// <param name="endPoint">線の終点</param>
+    /// <returns>重なり判定</returns>
+    private static bool CheckLineOverlapByPlane(Vector2 startPoint, Vector2 endPoint)
+    {
+        //線の始点と終点で、片方でも面上にある場合は、面に重なると判定する
+        //始点が面上にある
+        if (CheckPointInPlane(startPoint))
+        {
+            return true;
+        }
+        //終点が面上にある
+        if (CheckPointInPlane(endPoint))
+        {
+            return true;
+        }
+
+        //線が面に重なるか検査を始める
+        //初めに検査に必要な頂点座標を取得する
+        Vector2[] edges = GetPlaneEdgeByPoint(startPoint);
+        //線分の傾きが始点から各頂点座標を結ぶ線の傾き以内である場合は、重なると判定する
+        if (CheckLineSlopeByEdge(startPoint, endPoint, edges))
+        {
+            return true;
+        }
+
+        //重ならない
+        return false;
+
+    }
+
+    /// <summary>
+    /// <para>CheckPointInPlane</para>
+    /// <para>検査座標が面上にあるか検査します</para>
+    /// </summary>
+    /// <param name="point">検査座標</param>
+    /// <returns>面上判定</returns>
+    private static bool CheckPointInPlane(Vector2 point)
+    {
+        //座標が面の横幅外である
+        if(point.x < -_collisionRange.x || _collisionRange.x < point.x)
+        {
+            return false;
+        }
+
+        //座標が面の縦幅外である
+        if (point.y < -_collisionRange.y || _collisionRange.y < point.y)
+        {
+            return false;
+        }
+
+        //範囲内である
+        return true;
+    }
+
+    /// <summary>
+    /// <para>GetPlaneEdgeByPoint</para>
+    /// <para>面の頂点座標を取得します</para>
+    /// </summary>
+    /// <param name="point">検査座標</param>
+    /// <returns>検査座標に対する必要な頂点座標リスト</returns>
+    private static Vector2[] GetPlaneEdgeByPoint(Vector2 point)
+    {
+        //返却用
+        Vector2[] returnEdges = _resetReturnList;
+
+        //面から見た検査座標がどの位置に存在するかによって頂点座標を変更する
+        
+        //検査座標が 右上 または 左下 にある
+        if((_collisionRange.x < point.x && _collisionRange.y < point.y)
+            || (point.x < -_collisionRange.x && point.y < -_collisionRange.y ))
+        {
+            //左上と右下を返却
+            returnEdges[0] = _planeEdge[EdgeByPlane.leftUp];
+            returnEdges[1] = _planeEdge[EdgeByPlane.rightDown];
+        }
+        //検査座標が 右下 または 左上 にある
+        else if((_collisionRange.x < point.x && point.y < -_collisionRange.y)
+            || (point.x < -_collisionRange.x && _collisionRange.y < point.y))
+        {
+            //右上と左下を返却
+            returnEdges[0] = _planeEdge[EdgeByPlane.rightUp];
+            returnEdges[1] = _planeEdge[EdgeByPlane.leftDown];
+        }
+        //検査対象が 横幅の範囲内 である
+        else if(-_collisionRange.x <= point.x && point.x <= _collisionRange.x)
+        {
+            //検査対象が 上側 にある
+            if(_collisionRange.y < point.y)
+            {
+                //右上と左上を返却
+                returnEdges[0] = _planeEdge[EdgeByPlane.rightUp];
+                returnEdges[1] = _planeEdge[EdgeByPlane.leftUp];
+            }
+            //下側 にある
+            else
+            {
+                //右下と左下を返却
+                returnEdges[0] = _planeEdge[EdgeByPlane.rightDown];
+                returnEdges[1] = _planeEdge[EdgeByPlane.leftDown];
+            }
+        }
+        //検査対象が 縦幅の範囲内 である
+        else
+        {
+            //検査対象が 右側 にある
+            if (_collisionRange.x < point.x)
+            {
+                //右上と右下を返却
+                returnEdges[0] = _planeEdge[EdgeByPlane.rightUp];
+                returnEdges[1] = _planeEdge[EdgeByPlane.rightDown];
+            }
+            //左側 にある
+            else
+            {
+                //左上と左下を返却
+                returnEdges[0] = _planeEdge[EdgeByPlane.leftUp];
+                returnEdges[1] = _planeEdge[EdgeByPlane.leftDown];
+            }
+        }
+
+        //返却
+        return returnEdges;
+    }
+
+    /// <summary>
+    /// <para>CheckLineSlopeByEdge</para>
+    /// <para>始点と終点を結ぶ線の傾き が 始点と各頂点座標を結ぶ線の傾き内 であるか検査します</para>
+    /// </summary>
+    /// <param name="start">線の始点</param>
+    /// <param name="end">線の終点</param>
+    /// <param name="edges">頂点座標リスト</param>
+    /// <returns>範囲内判定</returns>
+    private static bool CheckLineSlopeByEdge(Vector2 start, Vector2 end, Vector2[] edges)
+    {
+        //傾きを算出
+        Vector2 lineSlope = end - start;
+        Vector2 edgeSlope1 = edges[0] - start;
+        Vector2 edgeSlope2 = edges[1] - start;
+
+        //始点と頂点座標を結ぶ線の傾きにおいて 各成分の最大値・最小値 を取り出し
+        Vector2 edgeMaxSlope = _vectorZero;
+        Vector2 edgeMinSlope = _vectorZero;
+        //頂点座標ベクトルの傾きのX軸成分
+        if (edgeSlope1.x < edgeSlope2.x)
+        {
+            edgeMaxSlope += _vector2Right * edgeSlope2.x;
+            edgeMinSlope += _vector2Right * edgeSlope1.x;
+        }
+        else
+        {
+            edgeMaxSlope += _vector2Right * edgeSlope1.x;
+            edgeMinSlope += _vector2Right * edgeSlope2.x;
+        }
+        //頂点座標ベクトルの傾きのY軸成分
+        if (edgeSlope1.y < edgeSlope2.y)
+        {
+            edgeMaxSlope += _vector2Up * edgeSlope2.y;
+            edgeMinSlope += _vector2Up * edgeSlope1.y;
+        }
+        else
+        {
+            edgeMaxSlope += _vector2Up * edgeSlope1.y;
+            edgeMinSlope += _vector2Up * edgeSlope2.y;
+        }
+
+        //各ベクトル成分を正規化
+        lineSlope = lineSlope.normalized;
+        edgeMaxSlope = edgeMaxSlope.normalized;
+        edgeMinSlope = edgeMinSlope.normalized;
+
+        //線分ベクトルの傾きが頂点座標ベクトルの傾きの範囲内であるか
+        if (edgeMinSlope.x <= lineSlope.x && lineSlope.x <= edgeMaxSlope.x
+            && edgeMinSlope.y <= lineSlope.y && lineSlope.y <= edgeMaxSlope.y)
+        {
+            //範囲内である
+            return true;
+        }
+
+        //範囲外である
         return false;
     }
     #endregion
