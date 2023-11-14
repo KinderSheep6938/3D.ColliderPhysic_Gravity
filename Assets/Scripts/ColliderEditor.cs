@@ -65,7 +65,7 @@ public static class ColliderEditor
         Vector3 scale = target.localScale;
 
         //‘S‚Ä’¸“_À•W‚ğæ“¾
-        for(int edge = 0;edge < EdgeData.maxEdgeCnt; edge++)
+        for(int edge = 0;edge < MAX_EDGE; edge++)
         {
             returnEdge[edge] = origin + GetEdgeDistanceByScale(scale, edge, target);
         }

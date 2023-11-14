@@ -26,6 +26,8 @@ public class OriginalCollider : MonoBehaviour
     //Õ“Ë”»’è
     [SerializeField, Header("Õ“Ë”»’è"),ReadOnly]
     private bool _isCollision = false;
+    //î•ñ‚Ì‹¤—L”»’è
+    private bool _isSetWorld = false;
 
     //©g‚ÌTransform
     private Transform _transform = default;
