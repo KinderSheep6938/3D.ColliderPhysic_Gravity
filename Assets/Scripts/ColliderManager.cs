@@ -544,5 +544,52 @@ public static class ColliderManager
         //範囲外である
         return false;
     }
+
+    /// <summary>
+    /// <para>CheckSlopeByEdgeSlope</para>
+    /// <para>対象ベクトルの傾きが頂点ベクトルの傾きの範囲内か検査します</para>
+    /// </summary>
+    /// <param name="lineSlope">対象ベクトル</param>
+    /// <param name="edges">頂点座標</param>
+    /// <param name="edgeMaxSlope">頂点ベクトルの最大値の傾き</param>
+    /// <param name="edgeMinSlope">頂点ベクトルの最小値の傾き</param>
+    /// <returns>範囲内判定</returns>
+    private static bool CheckSlopeByEdgeSlope(Vector2 lineSlope,Vector2[] edges,Vector2 edgeMaxSlope,Vector2 edgeMinSlope)
+    {
+        //頂点座標がお互いに同じ軸線上に存在しないか
+        if(edges[0].x != edges[1].x && edges[0].y != edges[1].y)
+        {
+            //対象ベクトルの傾きが最大値・最小値の範囲内である
+            if((edgeMinSlope.x <= lineSlope.x && lineSlope.x <= edgeMaxSlope.x)
+                && (edgeMinSlope.y <= lineSlope.y && lineSlope.y <= edgeMaxSlope.y))
+            {
+                //範囲内である
+                return true;
+            }
+            //範囲内ではない
+            return false;
+        }
+
+        //頂点座標が同じX軸上に存在する
+        if(edges[0].x == edges[1].x)
+        {
+            //対象ベクトルの傾きのY軸が最大値・最小値の範囲外であるか
+            if(lineSlope.y < edgeMinSlope.y || edgeMaxSlope.y < lineSlope.y)
+            {
+                //範囲内ではない
+                return false;
+            }
+
+            //始点から見た中心座標への方向の正負判定（true:正 false:負）
+            bool direSign = (0 < -edges[0].x);
+            //対象ベクトルの傾きのX軸が中心に向かっていないか
+            if (direSign)
+            {
+
+            }
+        }
+        
+        
+    }
     #endregion
 }
