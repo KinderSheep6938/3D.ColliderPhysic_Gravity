@@ -113,7 +113,7 @@ public static class ColliderManager
             nearEdge = GetNearEdgeByCollider(target, collider.Data.edgePos);
             //その頂点座標のインデックス取得
             nearEdgeIndex = Array.IndexOf(collider.Data.edgePos, nearEdge);
-            //Debug.Log(nearEdgeIndex + "nearindex");
+            Debug.Log(nearEdgeIndex + "myNearIndex");
             //自身の最も近い頂点から面上に結ぶことのできる線 が 検査対象のCollider に重なる
             if (CheckPlaneLineOverlap(nearEdgeIndex, collider.Data.edgePos, target))
             {
@@ -126,7 +126,7 @@ public static class ColliderManager
             nearEdge = GetNearEdgeByCollider(collider, target.Data.edgePos);
             //その頂点座標のインデックス取得
             nearEdgeIndex = Array.IndexOf(target.Data.edgePos, nearEdge);
-            //Debug.Log(nearEdgeIndex + "nearindex");
+            Debug.Log(nearEdgeIndex + "NearIndex");
             //自身の最も近い頂点から面上に結ぶことのできる線 が 検査対象のCollider に重なる
             if (CheckPlaneLineOverlap(nearEdgeIndex, target.Data.edgePos, collider))
             {
@@ -190,12 +190,10 @@ public static class ColliderManager
         //算出結果保存用
         float distance;
         //最も近い距離保存用　初期値として-1を格納する
-        float minDistance = -1;
+        float minDistance = float.MaxValue;
 
         //オブジェクト保存用
         Transform localObj = target.MyTransform;
-        //オブジェクトの中心座標
-        Vector3 origin = target.Data.position;
         //ローカル変換用
         Vector3 localEdge;
 
@@ -208,10 +206,11 @@ public static class ColliderManager
             //ローカル変換
             localEdge = localObj.InverseTransformPoint(edge);
             //距離算出
-            distance = Vector3.Distance(origin, localEdge);
+            distance = Vector3.Distance(_vectorZero, localEdge);
+            //Debug.Log(edge + ":" + localEdge + ":" + distance);
             //Debug.Log(distance + "dis " + localEdge + "local " + edge + "edge");
             //算出結果が保存されている距離より大きい または 初回でない 場合は何もしない
-            if(minDistance < distance && minDistance != -1)
+            if(minDistance < distance)
             {
                 continue;
             }
@@ -278,13 +277,14 @@ public static class ColliderManager
         //頂点に対して、面上に結ぶことのできる頂点分検査します
         foreach(int lineEdge in EdgeLineManager.GetEdgeFromPlaneLine(edge))
         {
-            //Debug.Log(lineEdge + "lineEdge");
+            Debug.Log(lineEdge + "lineEdge");
             //頂点と各対象の頂点を結ぶ線 が Collider に重なるか検査
             if(CheckLineOverlapByCollider(edgePos[edge], edgePos[lineEdge], collider))
             {
                 //重なっていると判定
                 return true;
             }
+            //Debug.Log("--------------------------");
         }
 
         //重なっていないと判定
@@ -362,7 +362,7 @@ public static class ColliderManager
         //初めに検査に必要な頂点座標を取得する
         Vector2[] edges = GetPlaneEdgeByPoint(startPoint);
         //線分の傾きが始点から各頂点座標を結ぶ線の傾き以内である場合は、重なると判定する
-        if (CheckLineSlopeByEdge(startPoint, endPoint, edges))
+        if (CheckLineSlopeByPlane(startPoint, endPoint, edges))
         {
             return true;
         }
@@ -468,13 +468,35 @@ public static class ColliderManager
 
     /// <summary>
     /// <para>CheckLineSlopeByEdge</para>
-    /// <para>始点と終点を結ぶ線の傾き が 始点と各頂点座標を結ぶ線の傾き内 であるか検査します</para>
+    /// <para>始点と終点を結ぶ線の傾き が 面に当たる傾き であるか検査します</para>
     /// </summary>
     /// <param name="start">線の始点</param>
     /// <param name="end">線の終点</param>
     /// <param name="edges">頂点座標リスト</param>
     /// <returns>範囲内判定</returns>
-    private static bool CheckLineSlopeByEdge(Vector2 start, Vector2 end, Vector2[] edges)
+    private static bool CheckLineSlopeByPlane(Vector2 start, Vector2 end, Vector2[] edges)
+    {
+        //傾き検査を通る かつ 線の大きさが面に重なるか
+        if (CheckSlopeByEdgeSlope(start,end,edges) && CheckSlopeOverlapPlane(start,end))
+        {
+            //範囲内である
+            return true;
+        }
+
+        //範囲外である
+        return false;
+    }
+
+    /// <summary>
+    /// <para>CheckSlopeByEdgeSlope</para>
+    /// <para>対象ベクトルの傾きが頂点ベクトルの傾きの範囲内・間に存在するか検査します</para>
+    /// </summary>
+    /// <param name="lineSlope">対象ベクトル</param>
+    /// <param name="edges">頂点座標</param>
+    /// <param name="edgeMaxSlope">頂点ベクトルの最大値の傾き</param>
+    /// <param name="edgeMinSlope">頂点ベクトルの最小値の傾き</param>
+    /// <returns>範囲内判定</returns>
+    private static bool CheckSlopeByEdgeSlope(Vector2 start, Vector2 end, Vector2[] edges)
     {
         //傾きを算出
         Vector2 lineSlope = end - start;
@@ -515,50 +537,14 @@ public static class ColliderManager
 
         Debug.Log("Nomal: " + lineSlope + " lS" + edgeMaxSlope + " eMaS" + edgeMinSlope + " eMiS");
 
-        //頂点ベクトルが同じ軸に存在 かつ その軸とは別の線分ベクトルの傾き成分が頂点ベクトルの傾き成分の範囲内であるか
-        bool vecJustX = (edges[0].x == edges[1].x) && (edgeMinSlope.y <= lineSlope.y && lineSlope.y <= edgeMaxSlope.y);
-        bool vecJustY = (edges[0].y == edges[1].y) && (edgeMinSlope.x <= lineSlope.x && lineSlope.x <= edgeMaxSlope.x);
-
-        //頂点ベクトルの傾きの強さの正負を取得
-        bool vecXSign = edgeMinSlope.x < edgeMaxSlope.x;
-        bool vecYSign = edgeMinSlope.y < edgeMaxSlope.y;
-
-        //その状況下にて、その軸の線分ベクトルの傾き成分が頂点ベクトルの傾き成分以上であるか
-        bool vecOverX = (vecXSign && edgeMinSlope.x <= lineSlope.x) || (!vecXSign && lineSlope.x <= edgeMinSlope.x);
-        bool vecOverY = (vecYSign && edgeMinSlope.y <= lineSlope.y) || (!vecYSign && lineSlope.y <= edgeMinSlope.y);
-        Debug.Log(edges[0] +":" + edges[1] + ":" + vecJustX + " " + vecXSign +" " + vecOverX + "|" + vecJustY + " " + vecXSign + " " + vecOverY);
-        if((vecJustX && vecOverX) || (vecJustY && vecOverY))
-        {
-            //範囲内である
-            return true;
-        }
-        
-        //線分ベクトルの傾きが頂点座標ベクトルの傾きの範囲内であるか
-        if (edgeMinSlope.x <= lineSlope.x && lineSlope.x <= edgeMaxSlope.x
-            && edgeMinSlope.y <= lineSlope.y && lineSlope.y <= edgeMaxSlope.y)
-        {
-            //範囲内である
-            return true;
-        }
-
-        //範囲外である
-        return false;
-    }
-
-    /// <summary>
-    /// <para>CheckSlopeByEdgeSlope</para>
-    /// <para>対象ベクトルの傾きが頂点ベクトルの傾きの範囲内か検査します</para>
-    /// </summary>
-    /// <param name="lineSlope">対象ベクトル</param>
-    /// <param name="edges">頂点座標</param>
-    /// <param name="edgeMaxSlope">頂点ベクトルの最大値の傾き</param>
-    /// <param name="edgeMinSlope">頂点ベクトルの最小値の傾き</param>
-    /// <returns>範囲内判定</returns>
-    private static bool CheckSlopeByEdgeSlope(Vector2 lineSlope,Vector2[] edges,Vector2 edgeMaxSlope,Vector2 edgeMinSlope)
-    {
+        //範囲検査 ---------------------------------------------------------------------------------
+        ////方向の正負判定用（true:正 false:負）
+        //bool direSign;
+        Debug.Log("edge:" + edges[0] + "|" + edges[1]);
         //頂点座標がお互いに同じ軸線上に存在しないか
-        if(edges[0].x != edges[1].x && edges[0].y != edges[1].y)
+        if (edges[0].x != edges[1].x && edges[0].y != edges[1].y)
         {
+            Debug.Log("NoXY");
             //対象ベクトルの傾きが最大値・最小値の範囲内である
             if((edgeMinSlope.x <= lineSlope.x && lineSlope.x <= edgeMaxSlope.x)
                 && (edgeMinSlope.y <= lineSlope.y && lineSlope.y <= edgeMaxSlope.y))
@@ -566,30 +552,178 @@ public static class ColliderManager
                 //範囲内である
                 return true;
             }
-            //範囲内ではない
+            //範囲外である
             return false;
         }
-
         //頂点座標が同じX軸上に存在する
-        if(edges[0].x == edges[1].x)
+        else if(edges[0].x == edges[1].x)
         {
-            //対象ベクトルの傾きのY軸が最大値・最小値の範囲外であるか
-            if(lineSlope.y < edgeMinSlope.y || edgeMaxSlope.y < lineSlope.y)
+            Debug.Log("X");
+            //対象ベクトルの傾きのY軸が最大値・最小値の範囲内であるか
+            if(edgeMinSlope.y <= lineSlope.y && lineSlope.y <= edgeMaxSlope.y)
             {
-                //範囲内ではない
-                return false;
+                //範囲内である
+                return true;
             }
 
-            //始点から見た中心座標への方向の正負判定（true:正 false:負）
-            bool direSign = (0 < -edges[0].x);
-            //対象ベクトルの傾きのX軸が中心に向かっていないか
-            if (direSign)
+            ////始点から見た中心座標への方向の正負判定（true:正 false:負）
+            //direSign = (0 < -edges[0].x);
+            //Debug.Log("dire:" + direSign);
+            ////対象ベクトルの傾きのX軸が最も近い辺を超えているか
+            //if ((direSign && edgeMinSlope.x <= lineSlope.x)
+            //    || (!direSign && lineSlope.x <= edgeMinSlope.x))
+            //{
+            //    //範囲内である
+            //    return true;
+            //}
+            //範囲外である
+            return false;
+        }
+        //頂点座標が同じY軸上に存在する
+        else
+        {
+            Debug.Log("Y");
+            //対象ベクトルの傾きのY軸が最大値・最小値の範囲外であるか
+            if (edgeMinSlope.x <= lineSlope.x && lineSlope.x <= edgeMaxSlope.x)
             {
+                //範囲内である
+                return true;
+            }
 
+            ////始点から見た中心座標への方向の正負判定（true:正 false:負）
+            //direSign = (0 < -edges[0].y);
+            //Debug.Log("dire:" + direSign);
+            ////対象ベクトルの傾きのX軸が最小値を超えているか
+            //if ((direSign && edgeMinSlope.y <= lineSlope.y)
+            //    || (!direSign && lineSlope.y <= edgeMinSlope.y))
+            //{
+            //    //範囲内である
+            //    return true;
+            //}
+            //範囲外である
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// <para>CheckSlopeOverlapPlane</para>
+    /// <para>始点と終点を結ぶ線の傾きが面に重なるか検査します</para>
+    /// </summary>
+    /// <param name="start">線の始点</param>
+    /// <param name="end">線の終点</param>
+    /// <returns>重なり判定</returns>
+    private static bool CheckSlopeOverlapPlane(Vector2 start,Vector2 end)
+    {
+        Debug.Log(start + "|" + end);
+        //始点から見た面への基礎ベクトルを取得
+        Vector2 slopeDire = GetSlopeByStartToOrigin(start);
+        //始点から面に当たる最小傾き分を算出
+        Debug.Log(start + " - " + GetProjection(slopeDire, start));
+        Vector2 centorMinSlope = start - GetProjection(slopeDire, start);
+        //始点から終点への傾きを中心方向へ射影
+        Vector2 centorSlope = end - start;
+
+        //始点から見た中心への方向正負判定
+        bool xDire = 0 < -start.x;
+        bool yDire = 0 < -start.y;
+        //それぞれの傾きが最小値を超えるか（同値でも超えると判定する）
+        bool xSlope = (xDire && centorMinSlope.x <= centorSlope.x) || (!xDire && centorSlope.x <= centorMinSlope.x);
+        bool ySlope = (yDire && centorMinSlope.y <= centorSlope.y) || (!yDire && centorSlope.y <= centorMinSlope.y);
+
+        Debug.Log(centorMinSlope + "|" + centorSlope + "|" + GetProjection(_vector2Right, _vector2Right + _vector2Up));
+        Debug.Log(xDire + ":" + yDire);
+        //始点が面から見て斜めの位置である
+        if(slopeDire.x != 0 && slopeDire.y != 0)
+        {
+            Debug.Log("toXY");
+            //始点から終点への線が最小傾き以上であるか
+            if (xSlope && ySlope)
+            {
+                return true;
             }
         }
-        
-        
+        //始点が面から見てX軸方向にある
+        else if(slopeDire.x != 0)
+        {
+            Debug.Log("toX");
+            //X軸において、始点から終点への線が最小傾き以上であるか
+            if (xSlope)
+            {
+                return true;
+            }
+        }
+        //始点が面から見てY軸方向にある
+        else
+        {
+            Debug.Log("toY");
+            //Y軸において、始点から終点への線が最小傾き以上であるか
+            if (ySlope)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
+
+    /// <summary>
+    /// <para>GetSlopeByStartToOrigin</para>
+    /// <para>始点から中心に向かう基礎傾きを取得します</para>
+    /// </summary>
+    /// <param name="start"></param>
+    /// <returns></returns>
+    private static Vector2 GetSlopeByStartToOrigin(Vector2 start)
+    {
+        //返却用
+        Vector2 returnSlope = _vectorZero;
+
+        //横軸
+        //範囲より上か
+        if (_collisionRange.x < start.x)
+        {
+            returnSlope += -_vector2Right;
+        }
+        //範囲より下か
+        else if (start.x < -_collisionRange.x)
+        {
+            returnSlope += _vector2Right;
+        }
+
+        //縦軸
+        //範囲より上か
+        if (_collisionRange.y < start.y)
+        {
+            returnSlope += -_vector2Up;
+        }
+        //範囲より下か
+        else if (start.y < -_collisionRange.y)
+        {
+            returnSlope += _vector2Up;
+        }
+
+        //返却
+        return returnSlope;
+    }
+
+    /// <summary>
+    /// <para>GetProjection</para>
+    /// <para>対象ベクトルを地面ベクトルに対し、射影を行ったベクトルを出力します</para>
+    /// </summary>
+    /// <param name="target">対象ベクトル</param>
+    /// <param name="ground">地面ベクトル</param>
+    /// <returns>射影ベクトル</returns>
+    private static Vector2 GetProjection(Vector2 target, Vector2 ground)
+    {
+        //射影分算出
+        Vector2 multiTG = target * ground;
+        Vector2 powG = ground * ground;
+        Vector2 projection = multiTG / powG;
+        Debug.Log("Pro:" + multiTG + "|" + powG + "|" + projection);
+        //計算
+        Vector2 returnPro = target * projection;
+
+        return returnPro;
+    }
+
     #endregion
 }

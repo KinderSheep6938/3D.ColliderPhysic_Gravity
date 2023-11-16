@@ -31,9 +31,17 @@ public class OriginalCollider : MonoBehaviour
 
     //自身のTransform
     private Transform _transform = default;
+    //自身のRenderer
+    private MeshRenderer _renderer = default;
     //自身のColliderData
     [SerializeField,Header("物理判定情報")]
     private ColliderData _myCol = new();
+
+    //衝突マテリアル
+    [SerializeField]
+    private Material _normal = default;
+    [SerializeField]
+    private Material _collision = default;
 
 
     #endregion
@@ -54,6 +62,7 @@ public class OriginalCollider : MonoBehaviour
         //初期化
         _transform = transform;
         _transform.hasChanged = false;
+        _renderer = _transform.GetComponent<MeshRenderer>();
 
         //Collider生成
         _myCol = ColliderEditor.SetColliderDataByCube(_transform);
@@ -125,6 +134,15 @@ public class OriginalCollider : MonoBehaviour
 
         //衝突判定を取得する
         _isCollision = ColliderManager.CheckCollision(this);
+
+        if (_isCollision)
+        {
+            _renderer.material = _collision;
+        }
+        else
+        {
+            _renderer.material = _normal;
+        }
 
         //変更フラグを消去
         _transform.hasChanged = false;
