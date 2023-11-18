@@ -8,6 +8,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using PhysicLibrary;
+using PhysicLibrary.Manager;
 
 public class OriginalRigidBody : MonoBehaviour
 {
@@ -15,7 +16,6 @@ public class OriginalRigidBody : MonoBehaviour
     //自身の物理データ
     [SerializeField]
     private PhysicData _myPhysic = new();
-
     //自身のCollider
     private OriginalCollider _collider = default;
     //自身のTransform
@@ -23,7 +23,8 @@ public class OriginalRigidBody : MonoBehaviour
     #endregion
 
     #region プロパティ
-
+    //現在の速度
+    public Vector3 Velocity { get => _myPhysic.velocity; }
     #endregion
 
     #region メソッド
@@ -35,6 +36,14 @@ public class OriginalRigidBody : MonoBehaviour
         //初期化
         _transform = transform;
         _collider = _transform.GetComponent<OriginalCollider>();
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Return))
+        {
+            _myPhysic.velocity = new Vector3(0, 1f, 0);
+        }
     }
 
     /// <summary>
@@ -73,12 +82,12 @@ public class OriginalRigidBody : MonoBehaviour
         {
             return;
         }
-
+        
         //衝突判定があるか
         if (collider.Collision)
         {
             //そのまま逆へ反発
-            _myPhysic.velocity = -_myPhysic.velocity;
+            _myPhysic.velocity = -(_myPhysic.reboundRatio * _myPhysic.velocity);
         }
     }
 

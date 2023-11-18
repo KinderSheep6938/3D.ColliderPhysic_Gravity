@@ -13,12 +13,14 @@ namespace ColliderLibrary
     [System.Serializable]
     public struct ColliderData
     {
+        //ローカル変換用Transform
+        [SerializeField, ReadOnly] public Transform transform;
         //Transform情報
-        [SerializeField,ReadOnly] public Vector3 position;
-        [SerializeField,ReadOnly] public Quaternion rotation;
-        [SerializeField,ReadOnly] public Vector3 localScale;
+        [SerializeField, ReadOnly] public Vector3 position;
+        [SerializeField, ReadOnly] public Quaternion rotation;
+        [SerializeField, ReadOnly] public Vector3 localScale;
         //頂点座標保管
-        [SerializeField,ReadOnly] public Vector3[] edgePos;
+        [SerializeField, ReadOnly] public Vector3[] edgePos;
     }
 
     //頂点座標共通識別用
@@ -34,25 +36,37 @@ namespace ColliderLibrary
         public const int bRD    = 5; //後方右下
         public const int bLU    = 6; //後方左上
         public const int bLD    = 7; //後方左下
-        //最大頂点数
-        public const int maxEdgeCnt = 8;
+    }
+
+    //衝突情報保管用
+    public struct CollisionData
+    {
+        //衝突判定
+        public bool collision;
+        //衝突相手
+        public ColliderData collider;
+        //簡易衝突場所
+        public Vector3 point;
     }
     #endregion
+
 
     /// <summary>
     /// <para>EdgeLine</para>
     /// <para>頂点座標を結ぶ線を管理します</para>
     /// </summary>
-    public static class EdgeLineManager
+    public class EdgeLineManager
     {
         #region 変数
         //返却用配列初期化用
         private static readonly int[] _resetReturnList = new int[6];
+        //最大頂点座標数
+        private const int MAX_EDGEINDEX = 7;
         #endregion
 
         #region プロパティ
         //頂点座標データの最大インデックス
-        public static int MaxEdgeIndex { get => EdgeData.maxEdgeCnt - 1; }
+        public static int MaxEdge { get => MAX_EDGEINDEX + 1; }
         #endregion
 
         #region メソッド
@@ -70,12 +84,13 @@ namespace ColliderLibrary
             int listIndex = 0;
             int checkEdge = -1;
             //頂点数分検査する
-            while(checkEdge < MaxEdgeIndex)
+            while(checkEdge < MAX_EDGEINDEX)
             {
                 //検査インデックス加算
                 checkEdge++;
+                //Debug.Log(edge + ":" + checkEdge + ":" + listIndex);
                 //指定した頂点自身 または 真反対の頂点 である時は処理を戻す
-                if(edge == checkEdge || MaxEdgeIndex - edge == checkEdge)
+                if (edge == checkEdge || MAX_EDGEINDEX - edge == checkEdge)
                 {
                     continue;
                 }
@@ -83,6 +98,7 @@ namespace ColliderLibrary
                 returnEdges[listIndex] = checkEdge;
                 listIndex++;
             }
+            //Debug.Log("return" + returnEdges.Length) ;
             //返却
             return returnEdges;
         }

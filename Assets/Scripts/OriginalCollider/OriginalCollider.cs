@@ -8,6 +8,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using ColliderLibrary;
+using ColliderLibrary.Editor;
+using ColliderLibrary.Manager;
 
 public class OriginalCollider : MonoBehaviour
 {
@@ -23,9 +25,15 @@ public class OriginalCollider : MonoBehaviour
     [SerializeField, Header("更新頻度")]
     private UpdateStatus _updateStatus = UpdateStatus.FixedUpdate;
 
-    //衝突判定
-    [SerializeField, Header("衝突判定"),ReadOnly]
-    private bool _isCollision = false;
+    //Colliderの衝突判定移動補完
+    private enum Interpolate
+    {
+        None,
+        Interpolate
+    }
+    [SerializeField, Header("速度保管")]
+    private Interpolate _interpolate = Interpolate.None;
+
     //情報の共有判定
     private bool _isSetWorld = false;
 
@@ -33,9 +41,15 @@ public class OriginalCollider : MonoBehaviour
     private Transform _transform = default;
     //自身のRenderer
     private MeshRenderer _renderer = default;
+    //自身のRigidbody
+    private OriginalRigidBody _rigid = default;
     //自身のColliderData
     [SerializeField,Header("物理判定情報")]
     private ColliderData _myCol = new();
+    //衝突対象保存用
+    private CollisionData _coll = new();
+    //補完用ColliderData
+    private ColliderData _interpolateCol = new();
 
     //衝突マテリアル
     [SerializeField]
@@ -51,8 +65,10 @@ public class OriginalCollider : MonoBehaviour
     public ColliderData Data { get => _myCol; }
     //Transform取得
     public Transform MyTransform { get => _transform; }
-    //衝突判定取得・設定
-    public bool Collision { get => _isCollision; }
+    //衝突判定取得
+    public bool Collision { get => _coll.collision; }
+    //簡易衝突場所取得
+    public Vector3 Point { get => _coll.point; }
     #endregion
 
     #region メソッド
@@ -65,11 +81,13 @@ public class OriginalCollider : MonoBehaviour
         _transform = transform;
         _transform.hasChanged = false;
         _renderer = _transform.GetComponent<MeshRenderer>();
+        _rigid = _transform.GetComponent<OriginalRigidBody>();
+        
 
         //Collider生成
         _myCol = ColliderEditor.SetColliderDataByCube(_transform);
         //Collider情報を管理マネージャーに設定
-        ColliderManager.SetColliderToWorld(this);
+        ColliderManager.SetColliderToWorld(_myCol);
         
     }
     
@@ -134,10 +152,41 @@ public class OriginalCollider : MonoBehaviour
         //Transformに基づいてColliderを作成する
         _myCol = ColliderEditor.SetColliderDataByCube(_transform);
 
-        //衝突判定を取得する
-        _isCollision = ColliderManager.CheckCollision(this);
+        CheckCollisionToInterpolate();
 
-        if (_isCollision)
+        //変更フラグを消去
+        _transform.hasChanged = false;
+    }
+
+    /// <summary>
+    /// <para>CheckCollisionToInterpolate</para>
+    /// <para>Colliderの衝突判定を検査します</para>
+    /// <para>また移動補完をする場合は、移動分を補完した状態で検査します</para>
+    /// </summary>
+    private void CheckCollisionToInterpolate()
+    {
+        //補完をしない または RigidBodyが付属していない
+        if(_interpolate == Interpolate.None || _rigid == default)
+        {
+            //衝突判定を取得する
+            _coll = ColliderManager.CheckCollision(_myCol);
+        }
+        else
+        {
+            //速度分を補完する
+            _interpolateCol = _myCol;
+            _interpolateCol.position += _rigid.Velocity;
+            for(int i = 0;i < EdgeLineManager.MaxEdge; i++)
+            {
+                _interpolateCol.edgePos[i] += _rigid.Velocity;
+            }
+
+            //衝突判定を取得する
+            _coll = ColliderManager.CheckCollision(_interpolateCol);
+        }
+
+
+        if (_coll.collision)
         {
             _renderer.material = _collision;
         }
@@ -145,9 +194,6 @@ public class OriginalCollider : MonoBehaviour
         {
             _renderer.material = _normal;
         }
-
-        //変更フラグを消去
-        _transform.hasChanged = false;
     }
 
     /// <summary>
@@ -174,7 +220,7 @@ public class OriginalCollider : MonoBehaviour
     private void OnEnable()
     {
         //Collider情報を管理マネージャーに設定
-        ColliderManager.SetColliderToWorld(this);
+        ColliderManager.SetColliderToWorld(_myCol);
     }
 
     /// <summary>
@@ -183,8 +229,10 @@ public class OriginalCollider : MonoBehaviour
     private void OnDisable()
     {
         //Collider情報を管理マネージャーから削除
-        ColliderManager.RemoveColliderToWorld(this);
+        ColliderManager.RemoveColliderToWorld(_myCol);
     }
 
     #endregion
+
+    
 }

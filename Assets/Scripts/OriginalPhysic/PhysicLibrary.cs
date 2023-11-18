@@ -12,13 +12,14 @@ namespace PhysicLibrary
     //–€C - –€C—Í
     //”½”­
     //ŒX‚«
-    
+
     //•¨—Šî‘bƒf[ƒ^
     [System.Serializable]
     public struct PhysicData
     {
-        [SerializeField] public float mass;                 //¿—Ê
-        [SerializeField] public float drug;                 //–€C—Í
-        [SerializeField, ReadOnly] public Vector3 velocity; //‰Á‘¬“x
+        [SerializeField] public float mass;                         //¿—Ê
+        [SerializeField] public float drug;                         //–€C—Í
+        [SerializeField, Range(0, 1)] public float reboundRatio;    //”½”­ŒW”
+        [SerializeField, ReadOnly] public Vector3 velocity;         //‰Á‘¬“x
     }
 }
