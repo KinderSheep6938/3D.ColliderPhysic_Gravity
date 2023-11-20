@@ -4,11 +4,9 @@
 /// ì¬“úF2023/11/06
 /// ì¬ÒFShizuku
 /// -----------------------------------------------------------------
-using UnityEngine;
-
-
 namespace ColliderLibrary.Editor
 {
+    using UnityEngine;
     using ColliderLibrary;
 
     public class ColliderEditor

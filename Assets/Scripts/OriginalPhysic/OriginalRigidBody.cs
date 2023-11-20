@@ -36,6 +36,8 @@ public class OriginalRigidBody : MonoBehaviour
         //初期化
         _transform = transform;
         _collider = _transform.GetComponent<OriginalCollider>();
+
+        
     }
 
     private void Update()
@@ -67,8 +69,8 @@ public class OriginalRigidBody : MonoBehaviour
     /// </summary>
     private void Gravity()
     {
-        //重力加算
-        _myPhysic.velocity = PhysicManager.Gravity(_myPhysic);
+        //重力加速度加算
+        _myPhysic.force = PhysicManager.Gravity(_myPhysic);
     }
 
     /// <summary>
@@ -77,18 +79,30 @@ public class OriginalRigidBody : MonoBehaviour
     /// </summary>
     private void Repulsion(OriginalCollider collider)
     {
-        //Colliderが設定されていない場合は処理しない
-        if(collider == default)
+        //Colliderが設定されていない または 衝突判定がないか
+        if (collider == default || !collider.CollisionData.collision)
         {
+            //物体に加えられている力をそのまま速度として付加
+            ForceToVelocity();
             return;
         }
-        
-        //衝突判定があるか
-        if (collider.Collision)
-        {
-            //そのまま逆へ反発
-            _myPhysic.velocity = -(_myPhysic.reboundRatio * _myPhysic.velocity);
-        }
+
+        //衝突した情報を加味して、速度を算出
+        _myPhysic.force = PhysicManager.RepulsionForceByCollider(_myPhysic, collider.CollisionData);
+        ForceToVelocity();
+
+        //衝突している物体の状況を加味して、速度を算出
+        //_myPhysic.velocity = -(_myPhysic.reboundRatio * _myPhysic.velocity);
+    }
+
+    /// <summary>
+    /// <para>ForceToVelocity</para>
+    /// <para>物体に与えられた力を速度に変換します</para>
+    /// </summary>
+    private void ForceToVelocity()
+    {
+        _myPhysic.velocity = _myPhysic.force;
+        return;
     }
 
     /// <summary>

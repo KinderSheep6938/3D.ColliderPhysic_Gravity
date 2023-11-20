@@ -4,12 +4,11 @@
 /// 作成日：2023/11/06
 /// 作成者：Shizuku
 /// -----------------------------------------------------------------
-using System;
-using System.Collections.Generic;
-using UnityEngine;
-
 namespace ColliderLibrary.Manager
 {
+    using System;
+    using System.Collections.Generic;
+    using UnityEngine;
     using VectorMath;
 
     public class ColliderManager
@@ -95,7 +94,7 @@ namespace ColliderLibrary.Manager
                 //自身の中心座標 が 検査対象のCollider の内部にある
                 if (CheckPointInCollider(collider.position, target))
                 {
-                    //Debug.Log("MyCenterCollision");
+                    Debug.Log("MyCenterCollision");
                     returnData.point = collider.position;
                     //衝突判定がある
                     return returnData;
@@ -104,7 +103,7 @@ namespace ColliderLibrary.Manager
                 //検査対処の中心座標 が 自身のCollider の内部にある
                 if (CheckPointInCollider(target.position, collider))
                 {
-                    //Debug.Log("CenterCollision");
+                    Debug.Log("CenterCollision");
                     returnData.point = target.position;
                     //衝突判定がある
                     return returnData;
@@ -114,11 +113,11 @@ namespace ColliderLibrary.Manager
                 nearEdge = GetNearEdgeByCollider(target, collider.edgePos);
                 //その頂点座標のインデックス取得
                 nearEdgeIndex = Array.IndexOf(collider.edgePos, nearEdge);
-                //Debug.Log(nearEdgeIndex + "myNearIndex");
+                Debug.Log(nearEdgeIndex + "myNearIndex");
                 //自身の最も近い頂点から面上に結ぶことのできる線 が 検査対象のCollider に重なる
                 if (CheckPlaneLineOverlap(nearEdgeIndex, collider.edgePos, target.transform))
                 {
-                    //Debug.Log("LineCollision ; " + target.name);
+                    Debug.Log("LineCollision ; " + target.transform.name);
                     returnData.point = nearEdge;
                     //衝突判定がある
                     return returnData;
@@ -128,11 +127,11 @@ namespace ColliderLibrary.Manager
                 nearEdge = GetNearEdgeByCollider(collider, target.edgePos);
                 //その頂点座標のインデックス取得
                 nearEdgeIndex = Array.IndexOf(target.edgePos, nearEdge);
-                //Debug.Log(nearEdgeIndex + "NearIndex");
+                Debug.Log(nearEdgeIndex + "NearIndex");
                 //自身の最も近い頂点から面上に結ぶことのできる線 が 検査対象のCollider に重なる
                 if (CheckPlaneLineOverlap(nearEdgeIndex, target.edgePos, collider.transform))
                 {
-                    //Debug.Log("ColliderLineCollision : " + target.name);
+                    Debug.Log("ColliderLineCollision : " + target.transform.name);
                     returnData.point = nearEdge;
                     //衝突判定がある
                     return returnData;
@@ -248,14 +247,15 @@ namespace ColliderLibrary.Manager
             //頂点に対して、面上に結ぶことのできる頂点分検査します
             foreach (int lineEdge in EdgeLineManager.GetEdgeFromPlaneLine(edge))
             {
-                //Debug.Log(lineEdge + "lineEdge" + edgePos[lineEdge]);
+                Debug.Log("--------------------------");
+                Debug.Log(lineEdge + "lineEdge" + edgePos[lineEdge]);
                 //頂点と各対象の頂点を結ぶ線 が Collider に重なるか検査
                 if (CheckLineOverlapByCollider(edgePos[edge], edgePos[lineEdge], collider))
                 {
                     //重なっていると判定
                     return true;
                 }
-                //Debug.Log("--------------------------");
+
             }
 
             //重なっていないと判定
@@ -272,7 +272,7 @@ namespace ColliderLibrary.Manager
         /// <returns>重なり判定</returns>
         private static bool CheckLineOverlapByCollider(Vector3 startPoint, Vector3 endPoint, Transform collider)
         {
-            //Debug.Log(startPoint + " SP" + endPoint + " EP");
+            Debug.Log(startPoint + " SP" + endPoint + " EP");
             //線の始点と終点をローカル変換
             Vector3 localStart = collider.InverseTransformPoint(startPoint);
             Vector3 localEnd = collider.InverseTransformPoint(endPoint);
@@ -281,7 +281,7 @@ namespace ColliderLibrary.Manager
             //Z面（X軸 と Y軸）
             Vector2 vec2Start = _vector2Right * localStart.x + _vector2Up * localStart.y;
             Vector2 vec2End = _vector2Right * localEnd.x + _vector2Up * localEnd.y;
-            //Debug.Log("Z:" + localStart + " lS" + localEnd + " lE" + vec2Start + " veS" + vec2End + " veE");
+            Debug.Log("Z:" + localStart + " lS" + localEnd + " lE" + vec2Start + " veS" + vec2End + " veE");
             //面に重ならない場合は、Colliderに重ならないと判定する
             if (!CheckLineOverlapByPlane(vec2Start, vec2End))
             {
@@ -290,7 +290,7 @@ namespace ColliderLibrary.Manager
             //X面（Y軸 と Z軸）
             vec2Start = _vector2Right * localStart.z + _vector2Up * localStart.y;
             vec2End = _vector2Right * localEnd.z + _vector2Up * localEnd.y;
-            //Debug.Log("X:" + localStart + " lS" + localEnd + " lE" + vec2Start + " veS" + vec2End + " veE");
+            Debug.Log("X:" + localStart + " lS" + localEnd + " lE" + vec2Start + " veS" + vec2End + " veE");
             //面が重ならない場合は、Colliderに重ならないと判定する
             if (!CheckLineOverlapByPlane(vec2Start, vec2End))
             {
@@ -299,7 +299,7 @@ namespace ColliderLibrary.Manager
             //Y面（X軸 と Z軸）
             vec2Start = _vector2Right * localStart.x + _vector2Up * localStart.z;
             vec2End = _vector2Right * localEnd.x + _vector2Up * localEnd.z;
-            //Debug.Log("Y:" + localStart + " lS" + localEnd + " lE" + vec2Start + " veS" + vec2End + " veE");
+            Debug.Log("Y:" + localStart + " lS" + localEnd + " lE" + vec2Start + " veS" + vec2End + " veE");
             //面が重ならない場合は、Colliderに重ならないと判定する
             if (!CheckLineOverlapByPlane(vec2Start, vec2End))
             {
@@ -388,14 +388,14 @@ namespace ColliderLibrary.Manager
             return false;
         }
 
+
         /// <summary>
         /// <para>CheckSlopeByEdgeSlope</para>
-        /// <para>対象ベクトルの傾きが頂点ベクトルの傾きの範囲内・間に存在するか検査します</para>
+        /// <para>線の傾き が 頂点ベクトルの傾きの範囲内・間に存在するか検査します</para>
         /// </summary>
-        /// <param name="lineSlope">対象ベクトル</param>
+        /// <param name="start">線の始点</param>
+        /// <param name="end">線の終点</param>
         /// <param name="edges">頂点座標</param>
-        /// <param name="edgeMaxSlope">頂点ベクトルの最大値の傾き</param>
-        /// <param name="edgeMinSlope">頂点ベクトルの最小値の傾き</param>
         /// <returns>範囲内判定</returns>
         private static bool CheckSlopeByEdgeSlope(Vector2 start, Vector2 end, Vector2[] edges)
         {
@@ -403,7 +403,7 @@ namespace ColliderLibrary.Manager
             Vector2 lineSlope = end - start;
             Vector2 edgeSlope1 = edges[0] - start;
             Vector2 edgeSlope2 = edges[1] - start;
-            //Debug.Log(lineSlope + " lS" + edgeSlope1 + " eS1" + edgeSlope2 + " eS2");
+            Debug.Log(lineSlope + " lS" + edgeSlope1 + " eS1" + edgeSlope2 + " eS2");
 
             //各ベクトル成分を正規化
             lineSlope = lineSlope.normalized;
@@ -436,16 +436,16 @@ namespace ColliderLibrary.Manager
                 edgeMinSlope += _vector2Up * edgeSlope2.y;
             }
 
-            //Debug.Log("Nomal: " + lineSlope + " lS" + edgeMaxSlope + " eMaS" + edgeMinSlope + " eMiS");
+            Debug.Log("Nomal: " + lineSlope + " lS" + edgeMaxSlope + " eMaS" + edgeMinSlope + " eMiS");
 
             //範囲検査 ---------------------------------------------------------------------------------
             ////方向の正負判定用（true:正 false:負）
             //bool direSign;
-            //Debug.Log("edge:" + edges[0] + "|" + edges[1]);
+            Debug.Log("edge:" + edges[0] + "|" + edges[1]);
             //頂点座標がお互いに同じ軸線上に存在しないか
             if (edges[0].x != edges[1].x && edges[0].y != edges[1].y)
             {
-                //Debug.Log("NoXY");
+                Debug.Log("NoXY");
                 //対象ベクトルの傾きが最大値・最小値の範囲内である
                 if ((edgeMinSlope.x <= lineSlope.x && lineSlope.x <= edgeMaxSlope.x)
                     && (edgeMinSlope.y <= lineSlope.y && lineSlope.y <= edgeMaxSlope.y))
@@ -459,7 +459,7 @@ namespace ColliderLibrary.Manager
             //頂点座標が同じX軸上に存在する
             else if (edges[0].x == edges[1].x)
             {
-                //Debug.Log("X");
+                Debug.Log("X");
                 //対象ベクトルの傾きのY軸が最大値・最小値の範囲内であるか
                 if (edgeMinSlope.y <= lineSlope.y && lineSlope.y <= edgeMaxSlope.y)
                 {
@@ -472,7 +472,7 @@ namespace ColliderLibrary.Manager
             //頂点座標が同じY軸上に存在する
             else
             {
-                //Debug.Log("Y");
+                Debug.Log("Y");
                 //対象ベクトルの傾きのY軸が最大値・最小値の範囲外であるか
                 if (edgeMinSlope.x <= lineSlope.x && lineSlope.x <= edgeMaxSlope.x)
                 {
@@ -498,8 +498,8 @@ namespace ColliderLibrary.Manager
             Vector2 slopeDire = GetTo.SlopeByPointToOrigin(start);
             //始点から面に当たる最小傾き分を算出
             //Debug.Log(start + " - " + GetProjection(slopeDire, start));
-            Vector2 centorMinSlope = start - GetTo.Projection(slopeDire, start);
-            //始点から終点への傾きを中心方向へ射影
+            Vector2 centorMinSlope = -start + GetTo.V2Projection(slopeDire, start);
+            //始点から終点への傾き
             Vector2 centorSlope = end - start;
 
             //始点から見た中心への方向正負判定
@@ -509,12 +509,12 @@ namespace ColliderLibrary.Manager
             bool xSlope = (xDire && centorMinSlope.x <= centorSlope.x) || (!xDire && centorSlope.x <= centorMinSlope.x);
             bool ySlope = (yDire && centorMinSlope.y <= centorSlope.y) || (!yDire && centorSlope.y <= centorMinSlope.y);
 
-            //Debug.Log(centorMinSlope + "|" + centorSlope + "|" + GetProjection(_vector2Right, _vector2Right + _vector2Up));
-            //Debug.Log(xDire + ":" + yDire);
+            Debug.Log(start + ":" + centorMinSlope + "|" + centorSlope + "|" + GetTo.V2Projection(_vector2Right, _vector2Right + _vector2Up));
+            Debug.Log(xDire + ":" + yDire);
             //始点が面から見て斜めの位置である
             if (slopeDire.x != 0 && slopeDire.y != 0)
             {
-                //Debug.Log("toXY");
+                Debug.Log("toXY");
                 //始点から終点への線が最小傾き以上であるか
                 if (xSlope && ySlope)
                 {
@@ -524,7 +524,7 @@ namespace ColliderLibrary.Manager
             //始点が面から見てX軸方向にある
             else if (slopeDire.x != 0)
             {
-                //Debug.Log("toX");
+                Debug.Log("toX");
                 //X軸において、始点から終点への線が最小傾き以上であるか
                 if (xSlope)
                 {
@@ -534,7 +534,7 @@ namespace ColliderLibrary.Manager
             //始点が面から見てY軸方向にある
             else
             {
-                //Debug.Log("toY");
+                Debug.Log("toY");
                 //Y軸において、始点から終点への線が最小傾き以上であるか
                 if (ySlope)
                 {

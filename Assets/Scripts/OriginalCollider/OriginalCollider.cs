@@ -65,10 +65,8 @@ public class OriginalCollider : MonoBehaviour
     public ColliderData Data { get => _myCol; }
     //Transformæ“¾
     public Transform MyTransform { get => _transform; }
-    //Õ“Ë”»’èæ“¾
-    public bool Collision { get => _coll.collision; }
-    //ŠÈˆÕÕ“ËêŠæ“¾
-    public Vector3 Point { get => _coll.point; }
+    //Õ“Ëî•ñæ“¾
+    public CollisionData CollisionData { get => _coll; }
     #endregion
 
     #region ƒƒ\ƒbƒh

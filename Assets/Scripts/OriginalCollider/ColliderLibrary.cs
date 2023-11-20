@@ -1,13 +1,13 @@
 /// -----------------------------------------------------------------
-/// ColliderDataLibrary　Collider共通情報
+/// ColliderLibrary　Collider共通情報
 /// 
 /// 作成日：2023/11/06
 /// 作成者：Shizuku
 /// -----------------------------------------------------------------
-using UnityEngine;
-
 namespace ColliderLibrary
 {
+    using UnityEngine;
+
     #region データ構造
     //オブジェクト情報保存用
     [System.Serializable]
@@ -49,7 +49,6 @@ namespace ColliderLibrary
         public Vector3 point;
     }
     #endregion
-
 
     /// <summary>
     /// <para>EdgeLine</para>
