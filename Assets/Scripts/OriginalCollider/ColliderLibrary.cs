@@ -47,6 +47,8 @@ namespace ColliderLibrary
         public ColliderData collider;
         //ŠÈˆÕÕ“ËêŠ
         public Vector3 point;
+        //•âŠ®ƒxƒNƒgƒ‹
+        public Vector3 interpolate;
     }
     #endregion
 

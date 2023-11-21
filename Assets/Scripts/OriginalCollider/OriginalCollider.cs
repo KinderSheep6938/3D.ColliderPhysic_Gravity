@@ -47,7 +47,7 @@ public class OriginalCollider : MonoBehaviour
     [SerializeField,Header("物理判定情報")]
     private ColliderData _myCol = new();
     //衝突対象保存用
-    private CollisionData _coll = new();
+    private CollisionData _collisionData = new();
     //補完用ColliderData
     private ColliderData _interpolateCol = new();
 
@@ -66,7 +66,7 @@ public class OriginalCollider : MonoBehaviour
     //Transform取得
     public Transform MyTransform { get => _transform; }
     //衝突情報取得
-    public CollisionData CollisionData { get => _coll; }
+    public CollisionData CollisionData { get => _collisionData; }
     #endregion
 
     #region メソッド
@@ -80,7 +80,9 @@ public class OriginalCollider : MonoBehaviour
         _transform.hasChanged = false;
         _renderer = _transform.GetComponent<MeshRenderer>();
         _rigid = _transform.GetComponent<OriginalRigidBody>();
-        
+
+        //補完分の移動量を初期化
+        _collisionData.interpolate = Vector3.zero;
 
         //Collider生成
         _myCol = ColliderEditor.SetColliderDataByCube(_transform);
@@ -167,24 +169,28 @@ public class OriginalCollider : MonoBehaviour
         if(_interpolate == Interpolate.None || _rigid == default)
         {
             //衝突判定を取得する
-            _coll = ColliderManager.CheckCollision(_myCol);
+            _collisionData = ColliderManager.CheckCollision(_myCol);
+
         }
         else
         {
-            //速度分を補完する
+            //補完変数に自身の情報を設定
             _interpolateCol = _myCol;
+            //速度分を補完する
             _interpolateCol.position += _rigid.Velocity;
             for(int i = 0;i < EdgeLineManager.MaxEdge; i++)
             {
                 _interpolateCol.edgePos[i] += _rigid.Velocity;
             }
 
-            //衝突判定を取得する
-            _coll = ColliderManager.CheckCollision(_interpolateCol);
+            //衝突判定を取得
+            _collisionData = ColliderManager.CheckCollision(_interpolateCol);
+            //補完分の移動量を設定
+            _collisionData.interpolate = _rigid.Velocity;
         }
 
-
-        if (_coll.collision)
+        //デバッグ用見た目変更
+        if (_collisionData.collision)
         {
             _renderer.material = _collision;
         }

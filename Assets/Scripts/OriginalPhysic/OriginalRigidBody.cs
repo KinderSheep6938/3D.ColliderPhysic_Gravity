@@ -10,6 +10,7 @@ using UnityEngine;
 using PhysicLibrary;
 using PhysicLibrary.Manager;
 
+
 public class OriginalRigidBody : MonoBehaviour
 {
     #region •Ï”
@@ -71,6 +72,7 @@ public class OriginalRigidBody : MonoBehaviour
     {
         //d—Í‰Á‘¬“x‰ÁZ
         _myPhysic.force = PhysicManager.Gravity(_myPhysic);
+
     }
 
     /// <summary>
@@ -101,7 +103,12 @@ public class OriginalRigidBody : MonoBehaviour
     /// </summary>
     private void ForceToVelocity()
     {
+        //—Í‚ğ‘¬“x‚É‘ã“ü
         _myPhysic.velocity = _myPhysic.force;
+
+        //’ïR—Í‚ğ‰Á–¡
+        _myPhysic.velocity -= _myPhysic.resistance * _myPhysic.velocity;
+
         return;
     }
 

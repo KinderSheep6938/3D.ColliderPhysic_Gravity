@@ -55,7 +55,7 @@ namespace VectorMath
             Vector2 projection = multiTG / powG;
             //Debug.Log("Pro:" + multiTG + "|" + powG + "|" + projection);
             //ŒvŽZ
-            Vector2 returnPro = target * projection;
+            Vector2 returnPro = ground * projection;
 
             return returnPro;
         }

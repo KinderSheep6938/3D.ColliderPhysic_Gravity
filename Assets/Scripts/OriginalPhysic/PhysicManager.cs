@@ -53,6 +53,7 @@ namespace PhysicLibrary.Manager
         /// <returns>実際の速度</returns>
         public static Vector3 RepulsionForceByCollider(PhysicData physic, CollisionData collision)
         {
+            Debug.Log("-------------------------------------------------------------------------");
             //各軸の力を法線ベクトルに射影
             //X軸
             Vector3 normalX = ForceByNormal(_vectorRight * physic.force.x, collision);
@@ -71,7 +72,7 @@ namespace PhysicLibrary.Manager
             Vector3 repulsionForce = -(physic.reboundRatio * GetTo.V3Projection(sumNormal,VerticalForceBySurface(collision)));
             Debug.Log("Re" + repulsionForce);
             //反発力を加算
-            sumNormal = repulsionForce;
+            sumNormal = AddRepulsionForce(sumNormal, repulsionForce);
 
             return sumNormal;
         }
@@ -105,6 +106,71 @@ namespace PhysicLibrary.Manager
         }
 
         /// <summary>
+        /// <para>AddRepulsion</para>
+        /// <para>反発力を加味した物体の力を算出します</para>
+        /// </summary>
+        /// <param name="force">現在の物体の力</param>
+        /// <param name="repulsion">反発力</param>
+        /// <returns>反発力を加味した物体の力</returns>
+        private static Vector3 AddRepulsionForce(Vector3 force, Vector3 repulsion)
+        {
+            //返却用
+            Vector3 returnVector = _vectorZero;
+
+            //反発力の各軸に力がある場合は、その軸の力を反発力に置き換える
+            //ない場合は、そのままの力を格納する
+
+            //そもそも反発力がない
+            if(repulsion == _vectorZero)
+            {
+                //その場で止まる
+                return returnVector;
+            }
+
+            //X軸に対して反発力がある
+            if(repulsion.x != 0)
+            {
+                //置き換え
+                returnVector += _vectorRight * repulsion.x;
+            }
+            //反発力がない
+            else
+            {
+                //そのまま
+                returnVector += _vectorRight * force.x;
+            }
+
+            //Y軸に対して反発力がある
+            if(repulsion.y != 0)
+            {
+                //置き換え
+                returnVector += _vectorUp * repulsion.y;
+            }
+            //反発力がない
+            else
+            {
+                //そのまま
+                returnVector += _vectorUp * force.y;
+            }
+
+            //Z軸に対して反発力がある
+            if(repulsion.z != 0)
+            {
+                //置き換え
+                returnVector += _vectorForward * repulsion.z;
+            }
+            //反発力がない
+            else
+            {
+                //そのまま
+                returnVector += _vectorForward * force.z;
+            }
+
+            //返却
+            return returnVector;
+        }
+
+        /// <summary>
         /// <para>VerticalForceBySurface</para>
         /// <para>面に対する垂直方向を取得します</para>
         /// </summary>
@@ -112,22 +178,23 @@ namespace PhysicLibrary.Manager
         /// <returns>面に対する垂直方向</returns>
         private static Vector3 VerticalForceBySurface(CollisionData collision)
         {
-            //衝突地点を正規化
-            Vector3 norVector = collision.collider.transform.InverseTransformPoint(collision.point).normalized;
+            //簡易衝突地点を取得
+            Vector3 collsionPoint = collision.collider.transform.InverseTransformPoint(collision.point - collision.interpolate);
 
             //正負関係なしに一番高い方向を判定する
             //各成分の絶対値を取得
-            float norX = Mathf.Abs(norVector.x);
-            float norY = Mathf.Abs(norVector.y);
-            float norZ = Mathf.Abs(norVector.z);
+            float norX = Mathf.Abs(collsionPoint.x);
+            float norY = Mathf.Abs(collsionPoint.y);
+            float norZ = Mathf.Abs(collsionPoint.z);
             //各絶対値の最大値を取得
             float maxNor = Mathf.Max(norX, norY, norZ);
+            Debug.Log(collsionPoint + "xyz" + norX + ":" + norY + ":" + norZ);
 
             //X軸が一番高い
             if(maxNor == norX)
             {
                 //正の値である
-                if(0 < norVector.x)
+                if(0 < collsionPoint.x)
                 {
                     return -collision.collider.transform.right;
                 }
@@ -141,7 +208,7 @@ namespace PhysicLibrary.Manager
             else if(maxNor == norY)
             {
                 //正の値である
-                if (0 < norVector.y)
+                if (0 < collsionPoint.y)
                 {
                     return -collision.collider.transform.up;
                 }
@@ -155,7 +222,7 @@ namespace PhysicLibrary.Manager
             else
             {
                 //正の値である
-                if (0 < norVector.z)
+                if (0 < collsionPoint.z)
                 {
                     return -collision.collider.transform.forward;
                 }
