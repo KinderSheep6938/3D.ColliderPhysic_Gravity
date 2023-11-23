@@ -14,6 +14,27 @@ using PhysicLibrary.Manager;
 public class OriginalRigidBody : MonoBehaviour
 {
     #region 変数
+    //基準Vector
+    private readonly Vector3 _vectorZero = Vector3.zero;
+    private readonly Vector3 _vectorRight = Vector3.right;
+    private readonly Vector3 _vectorUp = Vector3.up;
+    private readonly Vector3 _vectorForward = Vector3.forward;
+
+    //座標固定基準
+    private enum Freeze
+    {
+        None,   //特になし
+        XOnly,  //X軸固定
+        YOnly,  //Y軸固定
+        ZOnly,  //Z軸固定
+        XtoY,   //X軸とY軸固定
+        YtoZ,   //Y軸とZ軸固定
+        XtoZ,   //X軸とZ軸固定
+        All     //全て固定
+    }
+    [SerializeField, Header("座標固定")]
+    private Freeze _freezeStatus = Freeze.None;
+
     //自身の物理データ
     [SerializeField]
     private PhysicData _myPhysic = new();
@@ -54,6 +75,12 @@ public class OriginalRigidBody : MonoBehaviour
     /// </summary>
     private void FixedUpdate()
     {
+        //座標が全て固定されている場合は何もしない
+        if(_freezeStatus == Freeze.All)
+        {
+            return;
+        }
+
         //重力
         Gravity();
 
@@ -118,8 +145,41 @@ public class OriginalRigidBody : MonoBehaviour
     /// </summary>
     private void ApplyVelocity()
     {
-        //速度反映
-        _transform.position += _myPhysic.velocity;
+        //設定されている座標固定を反映
+
+        //特になしが設定されている
+        if(_freezeStatus == Freeze.None)
+        {
+            //速度反映
+            _transform.position += _myPhysic.velocity;
+            return;
+        }
+
+        //反映用
+        Vector3 noFreeze = _vectorZero;
+        //X軸が固定されていない
+        if(_freezeStatus != Freeze.XOnly && _freezeStatus != Freeze.XtoY && _freezeStatus != Freeze.XtoZ)
+        {
+            //代入
+            noFreeze += _vectorRight * _myPhysic.velocity.x;
+        }
+
+        //Y軸が固定されていない
+        if (_freezeStatus != Freeze.YOnly && _freezeStatus != Freeze.XtoY && _freezeStatus != Freeze.YtoZ)
+        {
+            //代入
+            noFreeze += _vectorUp * _myPhysic.velocity.y;
+        }
+
+        //Z軸が固定されていない
+        if (_freezeStatus != Freeze.ZOnly && _freezeStatus != Freeze.XtoZ && _freezeStatus != Freeze.YtoZ)
+        {
+            //代入
+            noFreeze += _vectorForward * _myPhysic.velocity.z;
+        }
+
+        //固定されていない方向のみ速度を反映
+        _transform.position += noFreeze;
     }
     #endregion
 }

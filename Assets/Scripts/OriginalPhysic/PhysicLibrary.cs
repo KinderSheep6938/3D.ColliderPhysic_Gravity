@@ -17,6 +17,7 @@ namespace PhysicLibrary
     public struct PhysicData
     {
         [SerializeField] public float mass;                         //¿—Ê
+        [SerializeField, Range(0, 1)] public float drug;            //–€C—Í
         [SerializeField, Range(0, 1)] public float resistance;      //’ïR—Í
         [SerializeField, Range(0, 1)] public float reboundRatio;    //”½”­ŒW”
         [SerializeField, ReadOnly] public Vector3 force;            //•¨‘Ì‚É‰Á‚¦‚ç‚ê‚Ä‚¢‚é—Í

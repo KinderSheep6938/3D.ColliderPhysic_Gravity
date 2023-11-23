@@ -46,14 +46,14 @@ namespace PhysicLibrary.Manager
 
         /// <summary>
         /// <para>ForceToVelocityByCollider</para>
-        /// <para>対象の力を与えられたCollider情報を加味した速度に変換します</para>
+        /// <para>対象の力を与えられたCollider情報を加味した力に変換します</para>
         /// </summary>
         /// <param name="physic">対象の物質</param>
         /// <param name="collision">衝突したCollider</param>
-        /// <returns>実際の速度</returns>
+        /// <returns>実際の力</returns>
         public static Vector3 RepulsionForceByCollider(PhysicData physic, CollisionData collision)
         {
-            Debug.Log("-------------------------------------------------------------------------");
+            //Debug.Log("-------------------------------------------------------------------------");
             //各軸の力を法線ベクトルに射影
             //X軸
             Vector3 normalX = ForceByNormal(_vectorRight * physic.force.x, collision);
@@ -62,19 +62,25 @@ namespace PhysicLibrary.Manager
             //Z軸
             Vector3 normalZ = ForceByNormal(_vectorForward * physic.force.z, collision);
 
-            //合計値
-            Debug.Log("no" + normalX + ":" + normalY + ":" + normalZ);
-            Vector3 sumNormal = normalX + normalY + normalZ;
+            //合計値を仮として代入
+            //Debug.Log("no" + normalX + ":" + normalY + ":" + normalZ);
+            Vector3 returnForce = normalX + normalY + normalZ;
 
             //反発力を算出します
-            Debug.Log(sumNormal + ":" + VerticalForceBySurface(collision));
+            //Debug.Log(returnForce + ":" + VerticalForceBySurface(collision));
             //反発力
-            Vector3 repulsionForce = -(physic.reboundRatio * GetTo.V3Projection(sumNormal,VerticalForceBySurface(collision)));
-            Debug.Log("Re" + repulsionForce);
-            //反発力を加算
-            sumNormal = AddRepulsionForce(sumNormal, repulsionForce);
+            Vector3 repulsionForce = -(physic.reboundRatio * GetTo.V3Projection(returnForce,VerticalForceBySurface(collision)));
+            //Debug.Log("Re" + repulsionForce);
 
-            return sumNormal;
+            //垂直抗力を算出
+            float verticalResistance = GetTo.V3Projection(Gravity(physic), VerticalForceBySurface(collision)).magnitude;
+            //摩擦力を算出
+            float drugPower = verticalResistance * physic.drug;
+
+            //最終
+            returnForce = AddRepulsionForce(returnForce, repulsionForce, drugPower);
+
+            return returnForce;
         }
 
         /// <summary>
@@ -92,13 +98,13 @@ namespace PhysicLibrary.Manager
                 return _vectorZero;
             }
 
-            Debug.Log("trVe:" + collision.collider.transform.up + ":" + collision.collider.transform.right + ":" + collision.collider.transform.forward);
+            //Debug.Log("trVe:" + collision.collider.transform.up + ":" + collision.collider.transform.right + ":" + collision.collider.transform.forward);
             //力を各軸の法線ベクトルに射影
             Vector3 normalForceUD = GetTo.V3Projection(force, collision.collider.transform.up);
             Vector3 normalForceRL = GetTo.V3Projection(force, collision.collider.transform.right);
             Vector3 normalForceFB = GetTo.V3Projection(force, collision.collider.transform.forward);
 
-            Debug.Log("no^" + normalForceUD + ":" + normalForceRL + ":" + normalForceFB);
+            //Debug.Log("no^" + normalForceUD + ":" + normalForceRL + ":" + normalForceFB);
             //射影ベクトルを合計
             Vector3 sumForce = normalForceUD + normalForceRL + normalForceFB;
 
@@ -112,7 +118,7 @@ namespace PhysicLibrary.Manager
         /// <param name="force">現在の物体の力</param>
         /// <param name="repulsion">反発力</param>
         /// <returns>反発力を加味した物体の力</returns>
-        private static Vector3 AddRepulsionForce(Vector3 force, Vector3 repulsion)
+        private static Vector3 AddRepulsionForce(Vector3 force, Vector3 repulsion, float moveDrugScale)
         {
             //返却用
             Vector3 returnVector = _vectorZero;
@@ -138,6 +144,9 @@ namespace PhysicLibrary.Manager
             {
                 //そのまま
                 returnVector += _vectorRight * force.x;
+
+                //動摩擦力を加算させる
+                returnVector += MoveDrugToVector3(force.x, _vectorRight, moveDrugScale);
             }
 
             //Y軸に対して反発力がある
@@ -151,6 +160,9 @@ namespace PhysicLibrary.Manager
             {
                 //そのまま
                 returnVector += _vectorUp * force.y;
+
+                //動摩擦力を加算させる
+                returnVector += MoveDrugToVector3(force.y,_vectorUp, moveDrugScale);
             }
 
             //Z軸に対して反発力がある
@@ -164,9 +176,49 @@ namespace PhysicLibrary.Manager
             {
                 //そのまま
                 returnVector += _vectorForward * force.z;
+
+                //動摩擦力を加算させる
+                returnVector += MoveDrugToVector3(force.z, _vectorForward, moveDrugScale);
             }
 
             //返却
+            return returnVector;
+        }
+
+        /// <summary>
+        /// <para>MoveDrugToVector3</para>
+        /// <para>動摩擦力をVector3に変換します</para>
+        /// </summary>
+        /// <param name="nowForceScale">現在の物体にかかる力</param>
+        /// <param name="vector">方向</param>
+        /// <param name="moveDrugScale">動摩擦力</param>
+        /// <returns>Vector3に変換された動摩擦力</returns>
+        private static Vector3 MoveDrugToVector3(float nowForceScale,Vector3 vector, float moveDrugScale)
+        {
+            //返却用
+            Vector3 returnVector;
+
+            Debug.Log("dr:" + nowForceScale + ":" + vector + ":" + moveDrugScale);
+
+            //現在の力が摩擦力より低い
+            if(Mathf.Abs(nowForceScale) <= moveDrugScale)
+            {
+                //後の算出が０となるように設定
+                returnVector = -vector * nowForceScale;
+            }
+            //正の方向に働いている
+            else if (0 < nowForceScale)
+            {
+                //摩擦力を設定
+                returnVector = -vector * moveDrugScale;
+            }
+            //負の方向に働いている
+            else
+            {
+                //摩擦力を設定
+                returnVector = vector * moveDrugScale;
+            }
+
             return returnVector;
         }
 
@@ -188,7 +240,7 @@ namespace PhysicLibrary.Manager
             float norZ = Mathf.Abs(collsionPoint.z);
             //各絶対値の最大値を取得
             float maxNor = Mathf.Max(norX, norY, norZ);
-            Debug.Log(collsionPoint + "xyz" + norX + ":" + norY + ":" + norZ);
+            //Debug.Log(collsionPoint + "xyz" + norX + ":" + norY + ":" + norZ);
 
             //X軸が一番高い
             if(maxNor == norX)
