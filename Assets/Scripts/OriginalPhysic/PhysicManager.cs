@@ -10,17 +10,21 @@ using System.Collections.Generic;
 namespace PhysicLibrary.Manager
 {
     using UnityEngine;
-    using ColliderLibrary;
-    using VectorMath;
+    using OriginalMath;
+    using PhysicLibrary.Material;
+    using PhysicLibrary.DataManager;
 
     public class PhysicManager
     {
         #region 変数
-        private static readonly Vector3 _gravityScale = new(0f, -0.981f, 0f);
+        //重力
+        private static readonly Vector3 _gravityScale = new(0f, -9.81f, 0f);
+        //基礎ベクトル
         private static readonly Vector3 _vectorZero = Vector3.zero;
         private static readonly Vector3 _vectorRight = Vector3.right;
         private static readonly Vector3 _vectorUp = Vector3.up;
         private static readonly Vector3 _vectorForward = Vector3.forward;
+
         #endregion
 
         #region プロパティ
@@ -45,71 +49,71 @@ namespace PhysicLibrary.Manager
         }
 
         /// <summary>
-        /// <para>ForceToVelocityByCollider</para>
-        /// <para>対象の力を与えられたCollider情報を加味した力に変換します</para>
+        /// <para>RepulsionForceByCollider</para>
+        /// <para>対象の力を物質情報を考慮した値に変換します</para>
         /// </summary>
         /// <param name="physic">対象の物質</param>
-        /// <param name="collision">衝突したCollider</param>
         /// <returns>実際の力</returns>
-        public static Vector3 RepulsionForceByCollider(PhysicData physic, CollisionData collision)
+        public static Vector3 ChangeForceByPhysicMaterials(PhysicData physic)
         {
             //Debug.Log("-------------------------------------------------------------------------");
-            //各軸の力を法線ベクトルに射影
-            //X軸
-            Vector3 normalX = ForceByNormal(_vectorRight * physic.force.x, collision);
-            //Y軸
-            Vector3 normalY = ForceByNormal(_vectorUp * physic.force.y, collision);
-            //Z軸
-            Vector3 normalZ = ForceByNormal(_vectorForward * physic.force.z, collision);
+            //返却用
+            Vector3 returnForce = physic.force;
+            //自身の物理挙動情報を取得
+            PhysicMaterials myMaterial = physic.colliderInfo.material;
+            //衝突先の物理挙動情報を取得
+            PhysicMaterials collisionMaterial = PhysicDataManager.SearchPhysicByCollider(physic);
 
-            //合計値を仮として代入
-            //Debug.Log("no" + normalX + ":" + normalY + ":" + normalZ);
-            Vector3 returnForce = normalX + normalY + normalZ;
+            //Debug.Log(myMaterial.bounciness == collisionMaterial.bounciness);
 
-            //反発力を算出します
-            //Debug.Log(returnForce + ":" + VerticalForceBySurface(collision));
-            //反発力
-            Vector3 repulsionForce = -(physic.reboundRatio * GetTo.V3Projection(returnForce,VerticalForceBySurface(collision)));
-            //Debug.Log("Re" + repulsionForce);
-
+            //垂直方向を取得
+            Vector3 vertical = VerticalForceBySurface(physic.colliderInfo);
+            //水平方向を取得
+            Vector3 horizontal = HorizontalForceBySurface(physic.colliderInfo.Collision.collider, vertical);
             //垂直抗力を算出
-            float verticalResistance = GetTo.V3Projection(Gravity(physic), VerticalForceBySurface(collision)).magnitude;
-            //摩擦力を算出
-            float drugPower = verticalResistance * physic.drug;
+            Vector3 verticalResistance = GetTo.V3Projection(physic.force, vertical);
+            //面に対して水平に加わっている力を算出
+            Vector3 horizontalForce = GetTo.V3Projection(physic.force, horizontal);
+            //Debug.Log("f:" + returnForce + "s:" + (verticalResistance + horizontalForce));
 
-            //最終
-            returnForce = AddRepulsionForce(returnForce, repulsionForce, drugPower);
+            //動摩擦係数を算出
+            float combineDynamicDrug = GetTo.ValueCombine(myMaterial.dynamicDrug, collisionMaterial.dynamicDrug, myMaterial.drugCombine);
+            //静止摩擦係数を算出
+            float combineStaticDrug = GetTo.ValueCombine(myMaterial.staticDrug, collisionMaterial.staticDrug, myMaterial.drugCombine);
+            //摩擦力を考慮した物質にかかる力を算出
+            returnForce += AddDrug(horizontalForce, verticalResistance, combineDynamicDrug, combineStaticDrug);
+
+            //Debug.Log(returnForce + ":" + VerticalForceBySurface(collision));
+            //反発係数を算出
+            float combineRep = GetTo.ValueCombine(myMaterial.bounciness, collisionMaterial.bounciness, myMaterial.bounceCombine);
+            //反発力を算出
+            Vector3 repulsionForce = -(combineRep * GetTo.V3Projection(physic.force,vertical));
+            //Debug.Log("Re" + repulsionForce);
+            //反発力を考慮した物質にかかる力を算出
+            returnForce = AddRepulsionForce(returnForce, repulsionForce);
 
             return returnForce;
         }
 
-        /// <summary>
-        /// <para>ForceByNormal</para>
-        /// <para>力を各法線ベクトルに射影し、</para>
-        /// </summary>
-        /// <param name="force">射影する力</param>
-        /// <param name="collision">法線ベクトル</param>
-        /// <returns></returns>
-        private static Vector3 ForceByNormal(Vector3 force, CollisionData collision)
+        private static Vector3 AddDrug(Vector3 horizontalForce, Vector3 verticalResistance, float dynamicDrug, float staticDrug)
         {
-            //力がない場合は 0 を返す
-            if(force.x == 0 && force.y == 0 && force.z == 0)
+            //Debug.Log(horizontalForce + ":" + verticalResistance);
+            //Vector3をfloat変換
+            float horizontalValue = horizontalForce.sqrMagnitude;
+
+            //最大静止摩擦力を算出
+            float maxStaticDrug = (verticalResistance * staticDrug).sqrMagnitude;
+
+            //水平に加わる力が最大静止摩擦力以下である
+            if (horizontalValue <= maxStaticDrug)
             {
-                return _vectorZero;
+                return -horizontalForce;
             }
-
-            //Debug.Log("trVe:" + collision.collider.transform.up + ":" + collision.collider.transform.right + ":" + collision.collider.transform.forward);
-            //力を各軸の法線ベクトルに射影
-            Vector3 normalForceUD = GetTo.V3Projection(force, collision.collider.transform.up);
-            Vector3 normalForceRL = GetTo.V3Projection(force, collision.collider.transform.right);
-            Vector3 normalForceFB = GetTo.V3Projection(force, collision.collider.transform.forward);
-
-            //Debug.Log("no^" + normalForceUD + ":" + normalForceRL + ":" + normalForceFB);
-            //射影ベクトルを合計
-            Vector3 sumForce = normalForceUD + normalForceRL + normalForceFB;
-
-            return sumForce;
+            //動摩擦力を返却
+            return -horizontalForce * dynamicDrug;
         }
+
+
 
         /// <summary>
         /// <para>AddRepulsion</para>
@@ -118,7 +122,7 @@ namespace PhysicLibrary.Manager
         /// <param name="force">現在の物体の力</param>
         /// <param name="repulsion">反発力</param>
         /// <returns>反発力を加味した物体の力</returns>
-        private static Vector3 AddRepulsionForce(Vector3 force, Vector3 repulsion, float moveDrugScale)
+        private static Vector3 AddRepulsionForce(Vector3 force, Vector3 repulsion)
         {
             //返却用
             Vector3 returnVector = _vectorZero;
@@ -144,9 +148,6 @@ namespace PhysicLibrary.Manager
             {
                 //そのまま
                 returnVector += _vectorRight * force.x;
-
-                //動摩擦力を加算させる
-                returnVector += MoveDrugToVector3(force.x, _vectorRight, moveDrugScale);
             }
 
             //Y軸に対して反発力がある
@@ -160,9 +161,6 @@ namespace PhysicLibrary.Manager
             {
                 //そのまま
                 returnVector += _vectorUp * force.y;
-
-                //動摩擦力を加算させる
-                returnVector += MoveDrugToVector3(force.y,_vectorUp, moveDrugScale);
             }
 
             //Z軸に対して反発力がある
@@ -176,49 +174,9 @@ namespace PhysicLibrary.Manager
             {
                 //そのまま
                 returnVector += _vectorForward * force.z;
-
-                //動摩擦力を加算させる
-                returnVector += MoveDrugToVector3(force.z, _vectorForward, moveDrugScale);
             }
 
             //返却
-            return returnVector;
-        }
-
-        /// <summary>
-        /// <para>MoveDrugToVector3</para>
-        /// <para>動摩擦力をVector3に変換します</para>
-        /// </summary>
-        /// <param name="nowForceScale">現在の物体にかかる力</param>
-        /// <param name="vector">方向</param>
-        /// <param name="moveDrugScale">動摩擦力</param>
-        /// <returns>Vector3に変換された動摩擦力</returns>
-        private static Vector3 MoveDrugToVector3(float nowForceScale,Vector3 vector, float moveDrugScale)
-        {
-            //返却用
-            Vector3 returnVector;
-
-            Debug.Log("dr:" + nowForceScale + ":" + vector + ":" + moveDrugScale);
-
-            //現在の力が摩擦力より低い
-            if(Mathf.Abs(nowForceScale) <= moveDrugScale)
-            {
-                //後の算出が０となるように設定
-                returnVector = -vector * nowForceScale;
-            }
-            //正の方向に働いている
-            else if (0 < nowForceScale)
-            {
-                //摩擦力を設定
-                returnVector = -vector * moveDrugScale;
-            }
-            //負の方向に働いている
-            else
-            {
-                //摩擦力を設定
-                returnVector = vector * moveDrugScale;
-            }
-
             return returnVector;
         }
 
@@ -228,10 +186,10 @@ namespace PhysicLibrary.Manager
         /// </summary>
         /// <param name="collision">対象のCollider</param>
         /// <returns>面に対する垂直方向</returns>
-        private static Vector3 VerticalForceBySurface(CollisionData collision)
+        private static Vector3 VerticalForceBySurface(IColliderInfoAccessible collision)
         {
             //簡易衝突地点を取得
-            Vector3 collsionPoint = collision.collider.transform.InverseTransformPoint(collision.point - collision.interpolate);
+            Vector3 collsionPoint = collision.Collision.collider.InverseTransformPoint(collision.Point);
 
             //正負関係なしに一番高い方向を判定する
             //各成分の絶対値を取得
@@ -248,12 +206,12 @@ namespace PhysicLibrary.Manager
                 //正の値である
                 if(0 < collsionPoint.x)
                 {
-                    return -collision.collider.transform.right;
+                    return -collision.Collision.collider.right;
                 }
                 //負の値である
                 else
                 {
-                    return collision.collider.transform.right;
+                    return collision.Collision.collider.right;
                 }
             }
             //Y軸が一番高い
@@ -262,12 +220,12 @@ namespace PhysicLibrary.Manager
                 //正の値である
                 if (0 < collsionPoint.y)
                 {
-                    return -collision.collider.transform.up;
+                    return -collision.Collision.collider.up;
                 }
                 //負の値である
                 else
                 {
-                    return collision.collider.transform.up;
+                    return collision.Collision.collider.up;
                 }
             }
             //Z軸が一番高い
@@ -276,17 +234,51 @@ namespace PhysicLibrary.Manager
                 //正の値である
                 if (0 < collsionPoint.z)
                 {
-                    return -collision.collider.transform.forward;
+                    return -collision.Collision.collider.forward;
                 }
                 //負の値である
                 else
                 {
-                    return collision.collider.transform.forward;
+                    return collision.Collision.collider.forward;
                 }
             }
         }
 
-        
-        #endregion
+        /// <summary>
+        /// <para>HorizontalForceBySurface</para>
+        /// <para>面に対する水平方向を取得します</para>
+        /// </summary>
+        /// <param name="surface">面方向を取得できるTransform</param>
+        /// <param name="vertical">垂直方向</param>
+        /// <returns>垂直方向以外の方向の和</returns>
+        private static Vector3 HorizontalForceBySurface(Transform surface, Vector3 vertical)
+        {
+            //返却用
+            Vector3 sumHorizontal = _vectorZero;
+
+            //垂直方向が上下である
+            if (vertical == surface.up || vertical == -surface.up)
+            {
+                sumHorizontal += surface.right;
+                sumHorizontal += surface.forward;
+                return sumHorizontal;
+            }
+            //垂直方向が左右である
+            else if (vertical == surface.right || vertical == -surface.right)
+            {
+                sumHorizontal += surface.up;
+                sumHorizontal += surface.forward;
+                return sumHorizontal;
+            }
+            //垂直方向が前後である
+            else
+            {
+                sumHorizontal += surface.right;
+                sumHorizontal += surface.up;
+                return sumHorizontal;
+            }
+        }
+
+        #endregion 
     }
 }

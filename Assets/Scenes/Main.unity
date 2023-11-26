@@ -156,21 +156,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _updateStatus: 3
-  _interpolate: 1
-  _myCol:
+  _physicMaterial:
+    transform: {fileID: 0}
+    dynamicDrug: 0
+    staticDrug: 0
+    bounciness: 0
+    drugCombine: 0
+    bounceCombine: 0
+  _colliderData:
     transform: {fileID: 0}
     position: {x: 0, y: 0, z: 0}
     rotation: {x: 0, y: 0, z: 0, w: 0}
     localScale: {x: 0, y: 0, z: 0}
-    edgePos:
-    - {x: 0, y: 0, z: 0}
-    - {x: 0, y: 0, z: 0}
-    - {x: 0, y: 0, z: 0}
-    - {x: 0, y: 0, z: 0}
-    - {x: 0, y: 0, z: 0}
-    - {x: 0, y: 0, z: 0}
-    - {x: 0, y: 0, z: 0}
-    - {x: 0, y: 0, z: 0}
+    edgePos: []
   _normal: {fileID: 2100000, guid: a317b747b21620142ae0c58cd61201d4, type: 2}
   _collision: {fileID: 2100000, guid: 4d7c8956263537b4b9f6ddafc5e522e2, type: 2}
 --- !u!23 &161464881
@@ -233,7 +231,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 5.21, y: 65.6, z: -6.67}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 3, y: 3, z: 3}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 963194228}
@@ -251,12 +249,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 371e9ac6e80e0b740bfdd67d95eb2184, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _interpolate: 1
   _freezeStatus: 0
+  _noGravity: 0
   _myPhysic:
-    mass: 3
-    drug: 0.208
-    resistance: 0.412
-    reboundRatio: 0.715
+    mass: 10
+    airResistance: 0.861
     force: {x: 0, y: 0, z: 0}
     velocity: {x: 0, y: 0, z: 0}
 --- !u!1 &490987906
@@ -687,21 +685,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _updateStatus: 3
-  _interpolate: 0
-  _myCol:
+  _physicMaterial:
+    transform: {fileID: 0}
+    dynamicDrug: 0.024
+    staticDrug: 0.688
+    bounciness: 0.01
+    drugCombine: 0
+    bounceCombine: 0
+  _colliderData:
     transform: {fileID: 0}
     position: {x: 0, y: 0, z: 0}
     rotation: {x: 0, y: 0, z: 0, w: 0}
     localScale: {x: 0, y: 0, z: 0}
-    edgePos:
-    - {x: 0, y: 0, z: 0}
-    - {x: 0, y: 0, z: 0}
-    - {x: 0, y: 0, z: 0}
-    - {x: 0, y: 0, z: 0}
-    - {x: 0, y: 0, z: 0}
-    - {x: 0, y: 0, z: 0}
-    - {x: 0, y: 0, z: 0}
-    - {x: 0, y: 0, z: 0}
+    edgePos: []
   _normal: {fileID: 2100000, guid: a317b747b21620142ae0c58cd61201d4, type: 2}
   _collision: {fileID: 2100000, guid: 4d7c8956263537b4b9f6ddafc5e522e2, type: 2}
 --- !u!23 &1131846504
@@ -763,8 +759,8 @@ Transform:
   m_GameObject: {fileID: 1131846502}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 1, w: 0}
-  m_LocalPosition: {x: -5000, y: -2, z: 5000}
-  m_LocalScale: {x: 10000, y: 5, z: 10000}
+  m_LocalPosition: {x: -500, y: -2, z: 500}
+  m_LocalScale: {x: 1000, y: 13.57, z: 1000}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -801,21 +797,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _updateStatus: 3
-  _interpolate: 0
-  _myCol:
+  _physicMaterial:
+    transform: {fileID: 0}
+    dynamicDrug: 0
+    staticDrug: 0
+    bounciness: 1
+    drugCombine: 0
+    bounceCombine: 0
+  _colliderData:
     transform: {fileID: 0}
     position: {x: 0, y: 0, z: 0}
     rotation: {x: 0, y: 0, z: 0, w: 0}
     localScale: {x: 0, y: 0, z: 0}
-    edgePos:
-    - {x: 0, y: 0, z: 0}
-    - {x: 0, y: 0, z: 0}
-    - {x: 0, y: 0, z: 0}
-    - {x: 0, y: 0, z: 0}
-    - {x: 0, y: 0, z: 0}
-    - {x: 0, y: 0, z: 0}
-    - {x: 0, y: 0, z: 0}
-    - {x: 0, y: 0, z: 0}
+    edgePos: []
   _normal: {fileID: 2100000, guid: a317b747b21620142ae0c58cd61201d4, type: 2}
   _collision: {fileID: 2100000, guid: 4d7c8956263537b4b9f6ddafc5e522e2, type: 2}
 --- !u!23 &1264752414

@@ -42,9 +42,9 @@ namespace ColliderLibrary
     public struct CollisionData
     {
         //Õ“Ë”»’è
-        public bool collision;
+        public bool flag;
         //Õ“Ë‘Šè
-        public ColliderData collider;
+        public Transform collider;
         //ŠÈˆÕÕ“ËêŠ
         public Vector3 point;
         //•âŠ®ƒxƒNƒgƒ‹

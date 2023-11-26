@@ -10,8 +10,10 @@ using UnityEngine;
 using ColliderLibrary;
 using ColliderLibrary.Editor;
 using ColliderLibrary.Manager;
+using PhysicLibrary.Material;
+using PhysicLibrary.DataManager;
 
-public class OriginalCollider : MonoBehaviour
+public class OriginalCollider : MonoBehaviour, IColliderInfoAccessible
 {
     #region 変数
     //Colliderの更新頻度
@@ -25,15 +27,6 @@ public class OriginalCollider : MonoBehaviour
     [SerializeField, Header("更新頻度")]
     private UpdateStatus _updateStatus = UpdateStatus.FixedUpdate;
 
-    //Colliderの衝突判定移動補完
-    private enum Interpolate
-    {
-        None,
-        Interpolate
-    }
-    [SerializeField, Header("速度保管")]
-    private Interpolate _interpolate = Interpolate.None;
-
     //情報の共有判定
     private bool _isSetWorld = false;
 
@@ -43,12 +36,16 @@ public class OriginalCollider : MonoBehaviour
     private MeshRenderer _renderer = default;
     //自身のRigidbody
     private OriginalRigidBody _rigid = default;
-    //自身のColliderData
-    [SerializeField,Header("物理判定情報")]
-    private ColliderData _myCol = new();
-    //衝突対象保存用
+
+    //自身の物理挙動情報
+    [SerializeField, Header("物理挙動情報")]
+    private PhysicMaterials _physicMaterial = new();
+    //自身の当たり判定情報
+    [SerializeField, Header("当たり判定情報")]
+    private ColliderData _colliderData = new();
+    //衝突情報保存用
     private CollisionData _collisionData = new();
-    //補完用ColliderData
+    //座標補完用の当たり判定
     private ColliderData _interpolateCol = new();
 
     //衝突マテリアル
@@ -61,12 +58,14 @@ public class OriginalCollider : MonoBehaviour
     #endregion
 
     #region プロパティ
-    //ColliderData取得
-    public ColliderData Data { get => _myCol; }
-    //Transform取得
-    public Transform MyTransform { get => _transform; }
+    //自身のTransform情報取得
+    Transform IColliderInfoAccessible.Collider { get => _colliderData.transform; }
     //衝突情報取得
-    public CollisionData CollisionData { get => _collisionData; }
+    CollisionData IColliderInfoAccessible.Collision { get => _collisionData; }
+    //衝突位置取得
+    Vector3 IColliderInfoAccessible.Point { get => _collisionData.point - _collisionData.interpolate; }
+    //自身の物理情報
+    PhysicMaterials IColliderInfoAccessible.material { get => _physicMaterial; }
     #endregion
 
     #region メソッド
@@ -85,9 +84,19 @@ public class OriginalCollider : MonoBehaviour
         _collisionData.interpolate = Vector3.zero;
 
         //Collider生成
-        _myCol = ColliderEditor.SetColliderDataByCube(_transform);
+        _colliderData = ColliderEditor.SetColliderDataByCube(_transform);
+        //Physic情報に自身を設定
+        _physicMaterial.transform = _transform;
+
+        //ゲームオブジェクトが無効化されている場合は処理をやめる
+        if (!gameObject.activeInHierarchy)
+        {
+            return;
+        }
         //Collider情報を管理マネージャーに設定
-        ColliderManager.SetColliderToWorld(_myCol);
+        ColliderManager.SetColliderToWorld(_colliderData);
+        //Physic情報を管理マネージャーに設定
+        PhysicDataManager.SetPhysicToWorld(_physicMaterial);
         
     }
     
@@ -103,7 +112,7 @@ public class OriginalCollider : MonoBehaviour
         }
 
         //Collider情報の更新
-        CheckColliderUpdata();
+        CheckColliderUpdate();
     }
 
     /// <summary>
@@ -118,7 +127,7 @@ public class OriginalCollider : MonoBehaviour
         }
 
         //Collider情報の更新
-        CheckColliderUpdata();
+        CheckColliderUpdate();
     }
 
     /// <summary>
@@ -133,15 +142,15 @@ public class OriginalCollider : MonoBehaviour
         }
 
         //Collider情報の更新
-        CheckColliderUpdata();
+        CheckColliderUpdate();
     }
 
     /// <summary>
-    /// <para>CheckColliderUpdata</para>
+    /// <para>CheckColliderUpdate</para>
     /// <para>Collider情報を更新する必要があるか検査します</para>
     /// <para>また必要があった場合は、更新処理を行います</para>
     /// </summary>
-    private void CheckColliderUpdata()
+    private void CheckColliderUpdate()
     {
         //Transform情報が変わってない
         if (!_transform.hasChanged)
@@ -150,8 +159,9 @@ public class OriginalCollider : MonoBehaviour
         }
 
         //Transformに基づいてColliderを作成する
-        _myCol = ColliderEditor.SetColliderDataByCube(_transform);
+        _colliderData = ColliderEditor.SetColliderDataByCube(_transform);
 
+        //座標補完あり衝突確認
         CheckCollisionToInterpolate();
 
         //変更フラグを消去
@@ -166,16 +176,16 @@ public class OriginalCollider : MonoBehaviour
     private void CheckCollisionToInterpolate()
     {
         //補完をしない または RigidBodyが付属していない
-        if(_interpolate == Interpolate.None || _rigid == default)
+        if(_rigid == default || _rigid.Interpolate == OriginalRigidBody.InterpolateStatus.None)
         {
             //衝突判定を取得する
-            _collisionData = ColliderManager.CheckCollision(_myCol);
+            _collisionData = ColliderManager.CheckCollision(_colliderData);
 
         }
         else
         {
             //補完変数に自身の情報を設定
-            _interpolateCol = _myCol;
+            _interpolateCol = _colliderData;
             //速度分を補完する
             _interpolateCol.position += _rigid.Velocity;
             for(int i = 0;i < EdgeLineManager.MaxEdge; i++)
@@ -190,7 +200,7 @@ public class OriginalCollider : MonoBehaviour
         }
 
         //デバッグ用見た目変更
-        if (_collisionData.collision)
+        if (_collisionData.flag)
         {
             _renderer.material = _collision;
         }
@@ -224,7 +234,9 @@ public class OriginalCollider : MonoBehaviour
     private void OnEnable()
     {
         //Collider情報を管理マネージャーに設定
-        ColliderManager.SetColliderToWorld(_myCol);
+        ColliderManager.SetColliderToWorld(_colliderData);
+        //Physic情報を管理マネージャーに設定
+        PhysicDataManager.SetPhysicToWorld(_physicMaterial);
     }
 
     /// <summary>
@@ -233,10 +245,9 @@ public class OriginalCollider : MonoBehaviour
     private void OnDisable()
     {
         //Collider情報を管理マネージャーから削除
-        ColliderManager.RemoveColliderToWorld(_myCol);
+        ColliderManager.RemoveColliderToWorld(_colliderData);
+        //Physic情報を管理マネージャーから削除
+        PhysicDataManager.RemovePhysicToWorld(_physicMaterial);
     }
-
     #endregion
-
-    
 }

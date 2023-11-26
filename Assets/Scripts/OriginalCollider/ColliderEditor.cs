@@ -22,6 +22,9 @@ namespace ColliderLibrary.Editor
 
         //最大頂点座標数
         private static readonly int _maxEdge = EdgeLineManager.MaxEdge;
+
+        //管理用番号
+        private static int _ctrlNumber = 0;
         #endregion
 
         #region プロパティ

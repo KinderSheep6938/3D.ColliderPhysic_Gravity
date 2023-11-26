@@ -2,11 +2,22 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace VectorMath
+namespace OriginalMath
 {
+    //計算方法
+    public enum Combine
+    {
+        Maximum,
+        Minimum,
+        Average,
+        Multiplty
+    }
+
     public class GetTo
     {
         #region 変数
+        //二分割用定数
+        private const int HALF = 2;
         //面の最大範囲
         private const float MAXRANGE = 0.5f;
         //基礎ベクトル
@@ -39,6 +50,37 @@ namespace VectorMath
         #endregion
 
         #region メソッド
+        /// <summary>
+        /// <para>ValueCombine</para>
+        /// <para>与えられた値を設定された計算での結果を返します</para>
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <param name="combine">計算方法</param>
+        /// <returns>計算結果</returns>
+        public static float ValueCombine(float a,float b, Combine combine)
+        {
+            //設定された計算方法に基づいて値を返却
+            switch (combine)
+            {
+                case Combine.Maximum:   //最大値
+                    return Mathf.Max(a, b);
+
+                case Combine.Minimum:   //最小値
+                    return Mathf.Min(a, b);
+
+                case Combine.Average:   //平均値
+                    return (a + b) / HALF;
+
+                case Combine.Multiplty: //掛け算
+                    return (a * b);
+
+                default:                //例外は0で返す
+                    return 0;
+                    
+            }
+        }
+
         /// <summary>
         /// <para>V2Projection</para>
         /// <para>対象ベクトルを地面ベクトルに対し、射影を行ったベクトルを出力します</para>

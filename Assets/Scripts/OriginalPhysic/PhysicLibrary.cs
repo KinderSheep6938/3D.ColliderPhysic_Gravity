@@ -17,10 +17,26 @@ namespace PhysicLibrary
     public struct PhysicData
     {
         [SerializeField] public float mass;                         //¿—Ê
-        [SerializeField, Range(0, 1)] public float drug;            //–€C—Í
-        [SerializeField, Range(0, 1)] public float resistance;      //’ïR—Í
-        [SerializeField, Range(0, 1)] public float reboundRatio;    //”½”­ŒW”
+        [SerializeField, Range(0, 1)] public float airResistance;   //‹ó‹C’ïR
         [SerializeField, ReadOnly] public Vector3 force;            //•¨‘Ì‚É‰Á‚¦‚ç‚ê‚Ä‚¢‚é—Í
         [SerializeField, ReadOnly] public Vector3 velocity;         //‰Á‘¬“x
+        public IColliderInfoAccessible colliderInfo;                //Collider‘¤‚Ö‚ÌÚ‘±—pƒCƒ“ƒ^[ƒtƒFƒCƒX
+    }
+
+    namespace Material
+    {
+        using OriginalMath;
+
+        //Šî‘b•¨—‹““®
+        [System.Serializable]
+        public struct PhysicMaterials
+        {
+            public Transform transform;                                 //©g‚ÌTransform
+            [SerializeField, Range(0f, 1f)] public float dynamicDrug;   //“®–€CŒW”
+            [SerializeField, Range(0f, 1f)] public float staticDrug;    //Ã~–€CŒW”
+            [SerializeField, Range(0.01f, 1f)] public float bounciness; //”½”­ŒW”
+            [SerializeField] public Combine drugCombine;                //–€C—Í‚Ìg—p’l
+            [SerializeField] public Combine bounceCombine;              //–€C—Í‚Ìg—p’l
+        }
     }
 }

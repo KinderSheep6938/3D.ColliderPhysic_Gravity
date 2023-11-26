@@ -9,7 +9,7 @@ namespace ColliderLibrary.Manager
     using System;
     using System.Collections.Generic;
     using UnityEngine;
-    using VectorMath;
+    using OriginalMath;
 
     public class ColliderManager
     {
@@ -22,8 +22,8 @@ namespace ColliderLibrary.Manager
         //衝突判定範囲の最大値
         private static readonly float _collisionRange = GetTo.MaxRange;
 
-        //Collider情報共有用
-        private static List<ColliderData> _worldInColliders = new();
+        //世界に置かれているCollider情報保存用
+        private static List<ColliderData> _collidersInWorld = new();
 
         #endregion
 
@@ -40,14 +40,14 @@ namespace ColliderLibrary.Manager
         public static void SetColliderToWorld(ColliderData target)
         {
             //既に格納されているか
-            if (_worldInColliders.Contains(target))
+            if (_collidersInWorld.Contains(target))
             {
                 //格納せず終了
                 return;
             }
 
             //格納
-            _worldInColliders.Add(target);
+            _collidersInWorld.Add(target);
         }
 
         /// <summary>
@@ -58,7 +58,7 @@ namespace ColliderLibrary.Manager
         public static void RemoveColliderToWorld(ColliderData target)
         {
             //共有リストから削除
-            _worldInColliders.Remove(target);
+            _collidersInWorld.Remove(target);
         }
 
         /// <summary>
@@ -69,18 +69,13 @@ namespace ColliderLibrary.Manager
         /// <returns>衝突判定</returns>
         public static CollisionData CheckCollision(ColliderData collider)
         {
-            //返却用
-            CollisionData returnData = new();
-            //返却用の衝突を設定
-            returnData.collision = true;
-
             //検査対象に一番近い頂点座標
             Vector3 nearEdge;
             //その頂点座標のインデックス保存用
             int nearEdgeIndex;
 
             //共有リストから全Collider情報を取得し、衝突検査を行います
-            foreach (ColliderData target in _worldInColliders)
+            foreach (ColliderData target in _collidersInWorld)
             {
                 //検査対象が 自身 である
                 if (target.transform == collider.transform)
@@ -88,25 +83,21 @@ namespace ColliderLibrary.Manager
                     //検査しない
                     continue;
                 }
-                //衝突相手を設定
-                returnData.collider = target;
 
                 //自身の中心座標 が 検査対象のCollider の内部にある
                 if (CheckPointInCollider(collider.position, target))
                 {
                     //Debug.Log("MyCenterCollision");
-                    returnData.point = collider.position;
-                    //衝突判定がある
-                    return returnData;
+                    //衝突情報を返却する
+                    return ReturnCollisionData(target, collider.position);
                 }
 
                 //検査対処の中心座標 が 自身のCollider の内部にある
                 if (CheckPointInCollider(target.position, collider))
                 {
                     //Debug.Log("CenterCollision");
-                    returnData.point = target.position;
-                    //衝突判定がある
-                    return returnData;
+                    //衝突情報を返却する
+                    return ReturnCollisionData(target, target.position);
                 }
 
                 //自身の頂点座標 から 最も検査対象に近い頂点座標 を格納
@@ -114,13 +105,12 @@ namespace ColliderLibrary.Manager
                 //その頂点座標のインデックス取得
                 nearEdgeIndex = Array.IndexOf(collider.edgePos, nearEdge);
                 //Debug.Log(nearEdgeIndex + "myNearIndex");
-                //自身の最も近い頂点から面上に結ぶことのできる線 が 検査対象のCollider に重なる
+                //その頂点から面上に別頂点へ結ぶことのできる線 が 検査対象のCollider に重なる
                 if (CheckPlaneLineOverlap(nearEdgeIndex, collider.edgePos, target.transform))
                 {
                     //Debug.Log("LineCollision ; " + target.transform.name);
-                    returnData.point = nearEdge;
-                    //衝突判定がある
-                    return returnData;
+                    //衝突情報を返却する
+                    return ReturnCollisionData(target, nearEdge);
                 }
 
                 //検査対象の頂点座標 から 最も自身に近い頂点座標 を格納
@@ -128,23 +118,45 @@ namespace ColliderLibrary.Manager
                 //その頂点座標のインデックス取得
                 nearEdgeIndex = Array.IndexOf(target.edgePos, nearEdge);
                 //Debug.Log(nearEdgeIndex + "NearIndex");
-                //自身の最も近い頂点から面上に結ぶことのできる線 が 検査対象のCollider に重なる
+                //その頂点から面上に別頂点へ結ぶことのできる線 が 自身のCollider に重なる
                 if (CheckPlaneLineOverlap(nearEdgeIndex, target.edgePos, collider.transform))
                 {
                     //Debug.Log("ColliderLineCollision : " + target.transform.name);
-                    returnData.point = nearEdge;
-                    //衝突判定がある
-                    return returnData;
+                    //衝突情報を返却する
+                    return ReturnCollisionData(target, nearEdge);
                 }
 
             }
 
+            //返却用
+            CollisionData returnData = new();
             //返却用初期化
-            returnData.collision = false;
+            returnData.flag = false;
             returnData.collider = default;
             returnData.point = _vectorZero;
             //Debug.Log("NoCollision");
-            //衝突判定がない
+            //空の衝突情報を返却する
+            return returnData;
+        }
+
+        /// <summary>
+        /// <para>ReturnCollisionData</para>
+        /// <para>与えられた情報を衝突情報として変換します</para>
+        /// </summary>
+        /// <returns>衝突情報</returns>
+        private static CollisionData ReturnCollisionData(ColliderData target, Vector3 point)
+        {
+            //返却用
+            CollisionData returnData = new();
+
+            //返却用設定
+            returnData.flag = true;
+            returnData.collider = target.transform;
+            returnData.point = point;
+
+            //衝突先に更新要求を設定
+            ;
+
             return returnData;
         }
 

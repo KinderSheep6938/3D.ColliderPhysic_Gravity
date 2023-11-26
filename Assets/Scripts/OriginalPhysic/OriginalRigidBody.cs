@@ -1,5 +1,5 @@
 /// -----------------------------------------------------------------
-/// OriginalRigidBody.cs
+/// OriginalRigidBody.cs 物理挙動
 /// 
 /// 作成日：2023/11/17
 /// 作成者：Shizuku
@@ -14,11 +14,21 @@ using PhysicLibrary.Manager;
 public class OriginalRigidBody : MonoBehaviour
 {
     #region 変数
+
     //基準Vector
     private readonly Vector3 _vectorZero = Vector3.zero;
     private readonly Vector3 _vectorRight = Vector3.right;
     private readonly Vector3 _vectorUp = Vector3.up;
     private readonly Vector3 _vectorForward = Vector3.forward;
+
+    //Colliderの衝突判定移動補完
+    public enum InterpolateStatus
+    {
+        None,
+        Interpolate
+    }
+    [SerializeField, Header("速度保管")]
+    private InterpolateStatus _interpolate = InterpolateStatus.None;
 
     //座標固定基準
     private enum Freeze
@@ -35,16 +45,23 @@ public class OriginalRigidBody : MonoBehaviour
     [SerializeField, Header("座標固定")]
     private Freeze _freezeStatus = Freeze.None;
 
+    //無重力判定
+    [SerializeField]
+    private bool _noGravity = false;
+
+
     //自身の物理データ
     [SerializeField]
     private PhysicData _myPhysic = new();
     //自身のCollider
-    private OriginalCollider _collider = default;
+    private IColliderInfoAccessible _colliderAccess = default;
     //自身のTransform
     private Transform _transform = default;
     #endregion
 
     #region プロパティ
+    public InterpolateStatus Interpolate { get => _interpolate; }
+
     //現在の速度
     public Vector3 Velocity { get => _myPhysic.velocity; }
     #endregion
@@ -57,16 +74,23 @@ public class OriginalRigidBody : MonoBehaviour
     {
         //初期化
         _transform = transform;
-        _collider = _transform.GetComponent<OriginalCollider>();
+        _colliderAccess = GetComponent<IColliderInfoAccessible>();
 
-        
+        //当たり判定側の接続インターフェイスを設定
+        _myPhysic.colliderInfo = _colliderAccess;
+
+        //ゲームオブジェクトが無効化されている場合は処理をやめる
+        if (!gameObject.activeInHierarchy)
+        {
+            return;
+        }
     }
 
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Return))
         {
-            _myPhysic.velocity = new Vector3(0, 1f, 0);
+            _myPhysic.force += new Vector3(0, 1f, 0);
         }
     }
 
@@ -85,7 +109,7 @@ public class OriginalRigidBody : MonoBehaviour
         Gravity();
 
         //反発
-        Repulsion(_collider);
+        Repulsion();
 
         //速度反映
         ApplyVelocity();
@@ -97,6 +121,12 @@ public class OriginalRigidBody : MonoBehaviour
     /// </summary>
     private void Gravity()
     {
+        //無重力に設定されているのであれば処理しない
+        if (_noGravity)
+        {
+            return;
+        }
+
         //重力加速度加算
         _myPhysic.force = PhysicManager.Gravity(_myPhysic);
 
@@ -106,10 +136,10 @@ public class OriginalRigidBody : MonoBehaviour
     /// <para>Requlsion</para>
     /// <para>Colliderによる反発力を取得します</para>
     /// </summary>
-    private void Repulsion(OriginalCollider collider)
+    private void Repulsion()
     {
         //Colliderが設定されていない または 衝突判定がないか
-        if (collider == default || !collider.CollisionData.collision)
+        if (_colliderAccess == default || !_colliderAccess.Collision.flag)
         {
             //物体に加えられている力をそのまま速度として付加
             ForceToVelocity();
@@ -117,7 +147,8 @@ public class OriginalRigidBody : MonoBehaviour
         }
 
         //衝突した情報を加味して、速度を算出
-        _myPhysic.force = PhysicManager.RepulsionForceByCollider(_myPhysic, collider.CollisionData);
+        _myPhysic.force = PhysicManager.ChangeForceByPhysicMaterials(_myPhysic);
+        //速度に反映
         ForceToVelocity();
 
         //衝突している物体の状況を加味して、速度を算出
@@ -130,11 +161,11 @@ public class OriginalRigidBody : MonoBehaviour
     /// </summary>
     private void ForceToVelocity()
     {
-        //力を速度に代入
+        //初期化
         _myPhysic.velocity = _myPhysic.force;
 
-        //抵抗力を加味
-        _myPhysic.velocity -= _myPhysic.resistance * _myPhysic.velocity;
+        //空気抵抗を考慮
+        _myPhysic.velocity += _myPhysic.airResistance * -_myPhysic.velocity;
 
         return;
     }
@@ -180,6 +211,17 @@ public class OriginalRigidBody : MonoBehaviour
 
         //固定されていない方向のみ速度を反映
         _transform.position += noFreeze;
+    }
+
+    /// <summary>
+    /// <para>AddForce</para>
+    /// <para>物質に力を加えます</para>
+    /// </summary>
+    /// <param name="add">加える力</param>
+    public void AddForce(Vector3 add)
+    {
+        //力を加算
+        _myPhysic.force += add;
     }
     #endregion
 }
