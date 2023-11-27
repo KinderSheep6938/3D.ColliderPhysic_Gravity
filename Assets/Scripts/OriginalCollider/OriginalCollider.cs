@@ -10,6 +10,7 @@ using UnityEngine;
 using ColliderLibrary;
 using ColliderLibrary.Editor;
 using ColliderLibrary.Manager;
+using ColliderLibrary.DataManager;
 using PhysicLibrary.Material;
 using PhysicLibrary.DataManager;
 
@@ -94,7 +95,7 @@ public class OriginalCollider : MonoBehaviour, IColliderInfoAccessible
             return;
         }
         //Collider情報を管理マネージャーに設定
-        ColliderManager.SetColliderToWorld(_colliderData);
+        ColliderDataManager.SetColliderToWorld(_colliderData);
         //Physic情報を管理マネージャーに設定
         PhysicDataManager.SetPhysicToWorld(_physicMaterial);
         
@@ -234,7 +235,7 @@ public class OriginalCollider : MonoBehaviour, IColliderInfoAccessible
     private void OnEnable()
     {
         //Collider情報を管理マネージャーに設定
-        ColliderManager.SetColliderToWorld(_colliderData);
+        ColliderDataManager.SetColliderToWorld(_colliderData);
         //Physic情報を管理マネージャーに設定
         PhysicDataManager.SetPhysicToWorld(_physicMaterial);
     }
@@ -245,7 +246,7 @@ public class OriginalCollider : MonoBehaviour, IColliderInfoAccessible
     private void OnDisable()
     {
         //Collider情報を管理マネージャーから削除
-        ColliderManager.RemoveColliderToWorld(_colliderData);
+        ColliderDataManager.RemoveColliderToWorld(_colliderData);
         //Physic情報を管理マネージャーから削除
         PhysicDataManager.RemovePhysicToWorld(_physicMaterial);
     }

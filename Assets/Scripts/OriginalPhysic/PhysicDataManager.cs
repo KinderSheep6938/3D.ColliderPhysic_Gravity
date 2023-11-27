@@ -6,9 +6,7 @@
 /// -----------------------------------------------------------------
 namespace PhysicLibrary.DataManager
 {
-    using System.Collections;
     using System.Collections.Generic;
-    using UnityEngine;
     using PhysicLibrary.Material;
 
     public class PhysicDataManager

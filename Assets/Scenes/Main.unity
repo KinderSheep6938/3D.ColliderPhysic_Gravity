@@ -158,9 +158,9 @@ MonoBehaviour:
   _updateStatus: 3
   _physicMaterial:
     transform: {fileID: 0}
-    dynamicDrug: 0
-    staticDrug: 0
-    bounciness: 0
+    dynamicDrug: 0.14
+    staticDrug: 0.43
+    bounciness: 0.01
     drugCombine: 0
     bounceCombine: 0
   _colliderData:
@@ -687,9 +687,9 @@ MonoBehaviour:
   _updateStatus: 3
   _physicMaterial:
     transform: {fileID: 0}
-    dynamicDrug: 0.024
-    staticDrug: 0.688
-    bounciness: 0.01
+    dynamicDrug: 0
+    staticDrug: 0
+    bounciness: 0.507
     drugCombine: 0
     bounceCombine: 0
   _colliderData:

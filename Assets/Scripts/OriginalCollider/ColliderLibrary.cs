@@ -8,7 +8,7 @@ namespace ColliderLibrary
 {
     using UnityEngine;
 
-    #region データ構造
+    #region Collider情報
     //オブジェクト情報保存用
     [System.Serializable]
     public struct ColliderData
@@ -53,16 +53,16 @@ namespace ColliderLibrary
     #endregion
 
     /// <summary>
-    /// <para>EdgeLine</para>
-    /// <para>頂点座標を結ぶ線を管理します</para>
+    /// <para>EdgeLineManager</para>
+    /// <para>頂点から結ぶことのできる線を管理します</para>
     /// </summary>
     public class EdgeLineManager
     {
         #region 変数
-        //返却用配列初期化用
-        private static readonly int[] _resetReturnList = new int[6];
         //最大頂点座標数
         private const int MAX_EDGEINDEX = 7;
+        //返却用配列初期化用
+        private static readonly int[] _resetReturnList = new int[6];
         #endregion
 
         #region プロパティ
