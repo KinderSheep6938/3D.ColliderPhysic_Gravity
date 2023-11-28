@@ -1,12 +1,9 @@
 /// -----------------------------------------------------------------
-/// PhysicManager.cs
+/// PhysicManager.cs •¨—‹““®§Œä
 /// 
 /// ì¬“úF2023/11/17
 /// ì¬ÒFShizuku
 /// -----------------------------------------------------------------
-using System.Collections;
-using System.Collections.Generic;
-
 namespace PhysicLibrary.Manager
 {
     using UnityEngine;
@@ -14,6 +11,10 @@ namespace PhysicLibrary.Manager
     using PhysicLibrary.Material;
     using PhysicLibrary.DataManager;
 
+    /// <summary>
+    /// <para>PhysicManager</para>
+    /// <para>•¨—‹““®‚ğŠÇ—‚µ‚Ü‚·</para>
+    /// </summary>
     public class PhysicManager
     {
         #region •Ï”
@@ -80,13 +81,13 @@ namespace PhysicLibrary.Manager
             Vector3 verticalResistance = GetTo.V3Projection(Gravity(physic), vertical);
             //…•½‚É“­‚­—Í‚ğæ“¾
             Vector3 horizontalForce = HorizontalForceBySurface(physic.colliderInfo.Collision.collider, vertical, physic.force);
-            //Debug.Log("f:" + returnForce + "s:" + (verticalResistance + horizontalForce));
+            Debug.Log("f:" + returnForce + "s:" + (verticalResistance + horizontalForce));
 
             //“®–€CŒW”‚ğZo
             float combineDynamicDrug = GetTo.ValueCombine(myMaterial.dynamicDrug, collisionMaterial.dynamicDrug, myMaterial.drugCombine);
             //Ã~–€CŒW”‚ğZo
             float combineStaticDrug = GetTo.ValueCombine(myMaterial.staticDrug, collisionMaterial.staticDrug, myMaterial.drugCombine);
-            //Debug.Log("v:" + vertical + verticalResistance + " :h" + horizontalForce + " | " + physic.force);
+            Debug.Log("v:" + vertical + verticalResistance + " :h" + horizontalForce + " | " + physic.force);
             //–€C—Í‚ğl—¶‚µ‚½•¨¿‚É‚©‚©‚é—Í‚ğZo
             returnForce += AddDrug(horizontalForce, verticalResistance, combineDynamicDrug, combineStaticDrug);
 
@@ -143,11 +144,10 @@ namespace PhysicLibrary.Manager
             //”½”­—Í‚ÌŠe²‚É—Í‚ª‚ ‚éê‡‚ÍA‚»‚Ì²‚Ì—Í‚ğ”½”­—Í‚É’u‚«Š·‚¦‚é
             //‚È‚¢ê‡‚ÍA‚»‚Ì‚Ü‚Ü‚Ì—Í‚ğŠi”[‚·‚é
 
-            //‚»‚à‚»‚à”½”­—Í‚ª‚È‚¢
-            if(repulsion == _vectorZero)
+            //”½”­—Í‚Æ•¨¿‚É‚©‚©‚é—Í‚ª‚È‚¢
+            if(repulsion == _vectorZero && force == _vectorZero)
             {
-                //‚»‚Ìê‚Å~‚Ü‚é
-                return returnVector;
+                return _vectorZero;
             }
 
             //X²‚É‘Î‚µ‚Ä”½”­—Í‚ª‚ ‚é

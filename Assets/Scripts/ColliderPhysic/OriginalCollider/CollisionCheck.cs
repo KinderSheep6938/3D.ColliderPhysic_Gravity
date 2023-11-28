@@ -9,6 +9,10 @@ namespace ColliderLibrary.Collision
     using UnityEngine;
     using OriginalMath;
 
+    /// <summary>
+    /// <para>CollisionCheck</para>
+    /// <para>Collider‚ªÕ“Ë‚µ‚Ä‚¢‚é‚©Šm”F‚µ‚Ü‚·</para>
+    /// </summary>
     public class CollisionCheck
     {
         #region •Ï”

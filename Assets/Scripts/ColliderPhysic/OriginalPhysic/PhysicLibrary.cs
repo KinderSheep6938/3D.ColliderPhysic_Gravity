@@ -7,11 +7,8 @@
 namespace PhysicLibrary
 {
     using UnityEngine;
-    //重力 - 質量、重力
-    //摩擦 - 摩擦力
-    //反発
-    //傾き
 
+    #region 物理データ
     //物理基礎データ
     [System.Serializable]
     public struct PhysicData
@@ -37,12 +34,14 @@ namespace PhysicLibrary
             this.colliderInfo = default;
         }
     }
+    #endregion
 
     namespace Material
     {
         using OriginalMath;
 
-        //基礎物理挙動
+        #region 物理材質
+        //材質挙動
         [System.Serializable]
         public struct PhysicMaterials
         {
@@ -53,5 +52,6 @@ namespace PhysicLibrary
             [SerializeField] public Combine drugCombine;                //摩擦力の使用値
             [SerializeField] public Combine bounceCombine;              //摩擦力の使用値
         }
+        #endregion
     }
 }

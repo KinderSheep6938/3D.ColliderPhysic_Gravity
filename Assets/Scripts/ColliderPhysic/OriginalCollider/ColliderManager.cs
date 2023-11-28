@@ -13,6 +13,10 @@ namespace ColliderLibrary.Manager
     using ColliderLibrary.DataManager;
     using ColliderLibrary.Collision;
 
+    /// <summary>
+    /// <para>ColliderManager</para>
+    /// <para>当たり判定を制御します</para>
+    /// </summary>
     public class ColliderManager
     {
         #region 変数
@@ -38,6 +42,13 @@ namespace ColliderLibrary.Manager
             Vector3 nearEdge;
             //その頂点座標のインデックス保存用
             int nearEdgeIndex;
+            //返却用データ構造
+            CollisionData returnData;
+
+            //データ一時保存用
+            List<Transform> saveTarget = new List<Transform>();
+            saveTarget.Clear();
+            List<Vector3> savePoint = new List<Vector3>();
 
             //共有リストから全Collider情報を取得し、衝突検査を行います
             foreach (ColliderData target in ColliderDataManager.ColliderInWorld)
@@ -52,15 +63,17 @@ namespace ColliderLibrary.Manager
                 //自身の中心座標 が 検査対象のCollider の内部にある
                 if (CollisionCheck.CheckPointInCollider(collider.position, target))
                 {
-                    //衝突情報を返却する
-                    return ReturnCollisionData(target, collider.position);
+                    //衝突情報を設定する
+                    saveTarget.Add(target.transform); 
+                    savePoint.Add(collider.position);
                 }
 
                 //検査対処の中心座標 が 自身のCollider の内部にある
                 if (CollisionCheck.CheckPointInCollider(target.position, collider))
                 {
-                    //衝突情報を返却する
-                    return ReturnCollisionData(target, target.position);
+                    //衝突情報を設定する
+                    saveTarget.Add(target.transform);
+                    savePoint.Add(target.position);
                 }
 
                 //自身の頂点座標 から 最も検査対象に近い頂点座標 を格納
@@ -70,8 +83,9 @@ namespace ColliderLibrary.Manager
                 //その頂点から面上に別頂点へ結ぶことのできる線 が 検査対象のCollider に重なる
                 if (CollisionCheck.CheckPlaneLineOverlap(nearEdgeIndex, collider.edgePos, target.transform))
                 {
-                    //衝突情報を返却する
-                    return ReturnCollisionData(target, nearEdge);
+                    //衝突情報を設定する
+                    saveTarget.Add(target.transform);
+                    savePoint.Add(nearEdge);
                 }
 
                 //検査対象の頂点座標 から 最も自身に近い頂点座標 を格納
@@ -81,38 +95,35 @@ namespace ColliderLibrary.Manager
                 //その頂点から面上に別頂点へ結ぶことのできる線 が 自身のCollider に重なる
                 if (CollisionCheck.CheckPlaneLineOverlap(nearEdgeIndex, target.edgePos, collider.transform))
                 {
-                    //衝突情報を返却する
-                    return ReturnCollisionData(target, GetNearEdgeByCollider(target, collider.edgePos));
+                    //衝突情報を設定する
+                    saveTarget.Add(target.transform);
+                    savePoint.Add(GetNearEdgeByCollider(target, collider.edgePos));
                 }
 
             }
 
-            //返却用
-            CollisionData returnData = new();
-            //返却用初期化
-            returnData.flag = false;
-            returnData.collider = default;
-            returnData.point = _vectorZero;
-            //空の衝突情報を返却する
-            return returnData;
-        }
-
-        /// <summary>
-        /// <para>ReturnCollisionData</para>
-        /// <para>与えられた情報を衝突情報として変換します</para>
-        /// </summary>
-        /// <returns>衝突情報</returns>
-        private static CollisionData ReturnCollisionData(ColliderData target, Vector3 point)
-        {
-            //返却用
-            CollisionData returnData = new();
-
-            //返却用設定
-            returnData.flag = true;
-            returnData.collider = target.transform;
-            returnData.point = point;
-
-            return returnData;
+            //設定された情報がない
+            if(saveTarget.Count == 0)
+            {
+                //返却用設定
+                returnData.flag = false;
+                returnData.collider = saveTarget.ToArray();
+                returnData.point = savePoint.ToArray();
+                returnData.interpolate = _vectorZero;
+                //空の衝突情報を返却する
+                return returnData;
+            }
+            //設定された情報がある
+            else
+            {
+                //返却用設定
+                returnData.flag = true;
+                returnData.collider = saveTarget.ToArray();
+                returnData.point = savePoint.ToArray();
+                returnData.interpolate = _vectorZero;
+                //衝突情報を返却する
+                return returnData;
+            }
         }
 
         /// <summary>

@@ -6,6 +6,7 @@
 /// -----------------------------------------------------------------
 namespace ColliderLibrary
 {
+    using System.Collections.Generic;
     using UnityEngine;
 
     #region Colliderî•ñ
@@ -45,11 +46,12 @@ namespace ColliderLibrary
         //Õ“Ë”»’è
         [SerializeField, ReadOnly] public bool flag;
         //Õ“Ë‘Šè
-        [SerializeField, ReadOnly] public Transform collider;
+        [SerializeField, ReadOnly] public Transform[] collider;
         //ŠÈˆÕÕ“ËêŠ
-        [SerializeField, ReadOnly] public Vector3 point;
+        [SerializeField, ReadOnly] public Vector3[] point;
         //•âŠ®ƒxƒNƒgƒ‹
         [SerializeField, ReadOnly] public Vector3 interpolate;
+
     }
     #endregion
 

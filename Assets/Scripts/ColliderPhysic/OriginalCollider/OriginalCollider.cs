@@ -32,8 +32,6 @@ public class OriginalCollider : MonoBehaviour, IColliderInfoAccessible
     private Transform _transform = default;
     //自身のRenderer
     private MeshRenderer _renderer = default;
-    //自身のRigidbody
-    private OriginalRigidBody _rigid = default;
 
     //自身の物理挙動情報
     [SerializeField, Header("物理挙動情報")]
@@ -44,8 +42,6 @@ public class OriginalCollider : MonoBehaviour, IColliderInfoAccessible
     //衝突情報保存用
     [SerializeField, Header("衝突情報")]
     private CollisionData _collisionData = new();
-    //座標補完用の当たり判定
-    private ColliderData _interpolateCol = new();
 
     //衝突マテリアル
     [SerializeField]
@@ -77,7 +73,6 @@ public class OriginalCollider : MonoBehaviour, IColliderInfoAccessible
         _transform = transform;
         _transform.hasChanged = false;
         _renderer = _transform.GetComponent<MeshRenderer>();
-        _rigid = _transform.GetComponent<OriginalRigidBody>();
 
         //補完分の移動量を初期化
         _collisionData.interpolate = Vector3.zero;
@@ -104,6 +99,7 @@ public class OriginalCollider : MonoBehaviour, IColliderInfoAccessible
     /// </summary>
     private void Update()
     {
+
         //更新頻度が Update でなければ処理しない
         if (_updateStatus != UpdateStatus.Update)
         {
@@ -160,44 +156,21 @@ public class OriginalCollider : MonoBehaviour, IColliderInfoAccessible
         //Transformに基づいてColliderを作成する
         _colliderData = ColliderEditor.SetColliderDataByCube(_transform);
 
-        //座標補完あり衝突確認
-        CheckCollisionToInterpolate();
+        //衝突確認
+        CheckCollision();
 
         //変更フラグを消去
         _transform.hasChanged = false;
     }
 
     /// <summary>
-    /// <para>CheckCollisionToInterpolate</para>
+    /// <para>CheckCollision</para>
     /// <para>Colliderの衝突判定を検査します</para>
-    /// <para>また移動補完をする場合は、移動分を補完した状態で検査します</para>
     /// </summary>
-    private void CheckCollisionToInterpolate()
+    private void CheckCollision()
     {
-        //補完をしない または RigidBodyが付属していない
-        if(_rigid == default || _rigid.Interpolate == OriginalRigidBody.InterpolateStatus.None)
-        {
-            //衝突判定を取得する
-            _collisionData = ColliderManager.CheckCollision(_colliderData);
-
-        }
-        else
-        {
-            //補完変数に自身の情報を設定
-            _interpolateCol = _colliderData;
-            //速度分を補完する
-            _interpolateCol.position += _rigid.Velocity;
-            for(int i = 0;i < EdgeLineManager.MaxEdge; i++)
-            {
-                _interpolateCol.edgePos[i] += _rigid.Velocity;
-            }
-
-            //衝突判定を取得
-            _collisionData = ColliderManager.CheckCollision(_interpolateCol);
-            //補完分の移動量を設定
-            _collisionData.interpolate = _rigid.Velocity;
-            Debug.DrawLine(_interpolateCol.position, _colliderData.position, Color.blue, 0.01f);
-        }
+        //衝突判定を取得する
+        //_collisionData = ColliderManager.CheckCollision(_colliderData);
 
         //デバッグ用見た目変更
         if (_collisionData.flag)
@@ -208,6 +181,34 @@ public class OriginalCollider : MonoBehaviour, IColliderInfoAccessible
         {
             _renderer.material = _normal;
         }
+    }
+
+    /// <summary>
+    /// <para>CheckCollisionToInterpolate</para>
+    /// <para>Colliderの衝突判定を補完ありで検査します</para>
+    /// </summary>
+    /// <param name="velocity">現在の速度</param>
+    /// <returns>衝突判定</returns>
+    bool IColliderInfoAccessible.CheckCollisionToInterpolate(Vector3 velocity)
+    {
+
+        //補完変数に自身の情報を設定
+        ColliderData interpolateCol = _colliderData;
+        //頂点座標リストを参照渡しではなく、値渡しに変換
+        interpolateCol.edgePos = (Vector3[])_colliderData.edgePos.Clone();
+        //速度分を補完する
+        interpolateCol.position += velocity;
+        for (int i = 0; i < EdgeLineManager.MaxEdge; i++)
+        {
+            interpolateCol.edgePos[i] += velocity;
+        }
+
+        //衝突判定を取得
+        _collisionData = ColliderManager.CheckCollision(interpolateCol);
+        //補完分の移動量を設定
+        _collisionData.interpolate = velocity;
+        //衝突判定を返却
+        return _collisionData.flag;
     }
 
     /// <summary>

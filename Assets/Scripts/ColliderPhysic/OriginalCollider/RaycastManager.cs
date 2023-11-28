@@ -20,6 +20,10 @@ namespace ColliderLibrary.Manager
     }
     #endregion
 
+    /// <summary>
+    /// <para>RaycastManager</para>
+    /// <para>Raycast“™‚ğŠÇ—‚µ‚Ü‚·</para>
+    /// </summary>
     public class RaycastManager
     {
         #region •Ï”

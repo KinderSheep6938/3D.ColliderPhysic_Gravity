@@ -8,6 +8,10 @@ namespace ColliderLibrary.DataManager
 {
     using System.Collections.Generic;
 
+    /// <summary>
+    /// <para>ColliderDataManager</para>
+    /// <para>“–‚½‚è”»’èƒf[ƒ^‚ğŠÇ—‚µ‚Ü‚·</para>
+    /// </summary>
     public class ColliderDataManager
     {
         #region •Ï”

@@ -9,6 +9,10 @@ namespace PhysicLibrary.DataManager
     using System.Collections.Generic;
     using PhysicLibrary.Material;
 
+    /// <summary>
+    /// <para>PhysicDataManager</para>
+    /// <para>•¨—ƒf[ƒ^‚ğŠÇ—‚µ‚Ü‚·</para>
+    /// </summary>
     public class PhysicDataManager
     {
         #region •Ï”

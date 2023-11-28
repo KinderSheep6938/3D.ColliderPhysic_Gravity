@@ -12,6 +12,7 @@ using PhysicLibrary.Material;
 
 public interface IColliderInfoAccessible
 {
+    #region プロパティ
     //自身のColliderのTransform
     public Transform Collider { get; }
 
@@ -22,4 +23,10 @@ public interface IColliderInfoAccessible
 
     //物理挙動情報
     public PhysicMaterials material { get; }
+    #endregion
+
+    #region メソッド
+    //補完ありの衝突判定
+    public bool CheckCollisionToInterpolate(Vector3 velocity);
+    #endregion
 }

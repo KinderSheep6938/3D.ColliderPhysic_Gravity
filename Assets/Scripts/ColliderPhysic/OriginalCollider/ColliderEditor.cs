@@ -9,6 +9,10 @@ namespace ColliderLibrary.Editor
     using UnityEngine;
     using ColliderLibrary;
 
+    /// <summary>
+    /// <para>ColliderEditor</para>
+    /// <para>当たり判定に必要なデータを作成します</para>
+    /// </summary>
     public class ColliderEditor
     {
         #region 変数

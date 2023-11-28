@@ -1,9 +1,17 @@
+/// -----------------------------------------------------------------
+/// OriginalMath.cs 特殊計算管理用
+/// 
+/// 作成日：2023/11/17
+/// 作成者：Shizuku
+/// -----------------------------------------------------------------
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+
 
 namespace OriginalMath
 {
+    using UnityEngine;
+
     //計算方法
     public enum Combine
     {
@@ -13,6 +21,10 @@ namespace OriginalMath
         Multiplty
     }
 
+    /// <summary>
+    /// <para>GetTo</para>
+    /// <para>特殊な計算等を行います</para>
+    /// </summary>
     public class GetTo
     {
         #region 変数
