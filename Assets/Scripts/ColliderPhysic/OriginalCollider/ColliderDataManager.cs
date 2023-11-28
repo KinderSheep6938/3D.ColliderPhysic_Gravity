@@ -20,7 +20,7 @@ namespace ColliderLibrary.DataManager
         #endregion
 
         #region プロパティ
-        public static ColliderData[] ColliderInWorld { get => _collidersInWorld.ToArray(); }
+        public static ref List<ColliderData> ColliderInWorld { get => ref _collidersInWorld; }
         #endregion
 
         #region メソッド

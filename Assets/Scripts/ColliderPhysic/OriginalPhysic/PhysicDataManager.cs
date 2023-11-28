@@ -63,13 +63,8 @@ namespace PhysicLibrary.DataManager
             foreach (PhysicMaterials search in _physicsInWorld)
             {
                 //Debug.Log(search.transform + ":" + myData.colliderInfo.Collision.collider + "a:" + (search.transform == myData.colliderInfo.Collision.collider));
+                
 
-                //ŒŸ¸‘ÎÛ‚ÌTransform‚ªÕ“Ëî•ñ‚ÌTransform‚Æˆê’v‚·‚é
-                if (search.transform == myData.colliderInfo.Collision.collider)
-                {
-                    //ŒŸ¸‘ÎÛ‚ğ•Ô‹p‚·‚é
-                    return search;
-                }
             }
 
             //Œ©‚Â‚©‚ç‚È‚¢ê‡‚ÍŒvZˆ—ŠÈ—ª‰»‚Ì‚½‚ßA©g‚ÌPhysicî•ñ‚ğ•Ô‹p‚·‚é

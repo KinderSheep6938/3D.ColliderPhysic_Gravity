@@ -8,6 +8,7 @@ namespace ColliderLibrary.Editor
 {
     using UnityEngine;
     using ColliderLibrary;
+    using PhysicLibrary.Material;
 
     /// <summary>
     /// <para>ColliderEditor</para>
@@ -40,19 +41,19 @@ namespace ColliderLibrary.Editor
         /// </summary>
         /// <param name="targetObj">対象のオブジェクト</param>
         /// <returns>Collider情報</returns>
-        public static ColliderData SetColliderDataByCube(Transform targetObj)
+        public static ColliderData SetColliderDataByCube(PhysicMaterials target)
         {
             //返却用
             ColliderData returnData = new();
 
             //アクセスを簡略にする
-            returnData.transform = targetObj;
-            returnData.position = targetObj.position;
-            returnData.rotation = targetObj.rotation;
-            returnData.localScale = targetObj.localScale;
+            returnData.physic = target;
+            returnData.position = target.transform.position;
+            returnData.rotation = target.transform.rotation;
+            returnData.localScale = target.transform.localScale;
 
             //オブジェクトの頂点座標設定
-            returnData.edgePos = GetObjectEdgePos(targetObj);
+            returnData.edgePos = GetObjectEdgePos(target.transform);
 
             //生成完了
             return returnData;

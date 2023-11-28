@@ -56,7 +56,7 @@ namespace ColliderLibrary.Manager
             foreach(ColliderData collider in ColliderDataManager.ColliderInWorld)
             {
                 //Raycastの始点と終点を結ぶ線に重ならない
-                if (!CollisionCheck.CheckLineOverlapByCollider(origin, lineEnd, collider.transform))
+                if (!CollisionCheck.CheckLineOverlapByCollider(origin, lineEnd, collider.physic.transform))
                 {
                     //処理をスキップ
                     continue;

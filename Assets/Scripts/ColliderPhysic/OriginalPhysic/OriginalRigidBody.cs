@@ -9,6 +9,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using PhysicLibrary;
 using PhysicLibrary.Manager;
+using PhysicLibrary.Material;
+using PhysicLibrary.CollisionPhysic;
 
 public class OriginalRigidBody : MonoBehaviour
 {
@@ -39,8 +41,6 @@ public class OriginalRigidBody : MonoBehaviour
 
     //面の衝突判定
     private bool _onSurface = false;
-    //最小重力加速度
-    private Vector3 _minGravity = default;
 
     //自身の物理データ
     [SerializeField]
@@ -158,7 +158,7 @@ public class OriginalRigidBody : MonoBehaviour
         }
 
         //面接触判定がない かつ 現在速度で衝突判定が起きない
-        if (!_onSurface && !_colliderAccess.CheckCollisionToInterpolate(interpolateVelocity))
+        if (!_onSurface && !_colliderAccess.CheckCollisionToInterpolate(interpolateVelocity, true))
         {
             //そのまま速度として付加
             _physicData.velocity = interpolateVelocity;
@@ -169,8 +169,8 @@ public class OriginalRigidBody : MonoBehaviour
         //最小重力加速度設定
         //_minGravity = PhysicManager.Gravity(_physicData);
         //_physicData.force += _minGravity;
-        //衝突した情報を加味して、速度を算出
-        _physicData.force = PhysicManager.ChangeForceByPhysicMaterials(_physicData);
+        //衝突情報を検索
+        CheckCollisionData(_physicData.colliderInfo.material, _physicData.force);
         //_physicData.force += _minGravity;
 
         //反発後の力が最低値以下であれば物質にかかる力を消去する
@@ -183,6 +183,41 @@ public class OriginalRigidBody : MonoBehaviour
 
         //衝突している物体の状況を加味して、速度を算出
         //_myPhysic.velocity = -(_myPhysic.reboundRatio * _myPhysic.velocity);
+    }
+
+    /// <summary>
+    /// <para>CheckCollisionData</para>
+    /// <para>検査対象が登録されている衝突データから反発後の力を算出します</para>
+    /// <para>再起処理</para>
+    /// </summary>
+    /// <param name="data">検査対象</param>
+    private void CheckCollisionData(PhysicMaterials data, Vector3 firstForce)
+    {
+        //登録されていない場合は処理しない
+        if (!CollisionPhysicManager.CheckWaitContains(data))
+        {
+            return;
+        }
+
+        if(firstForce == _vectorZero)
+        {
+            //めり込み制御
+            _physicData.force = PhysicManager.NoForceToCollision(_physicData, CollisionPhysicManager.GetCollision(data));
+        }
+        else
+        {
+            //衝突した情報を加味して、力を算出
+            _physicData.force = PhysicManager.ChangeForceByPhysicMaterials(_physicData, CollisionPhysicManager.GetCollision(data));
+        }
+
+        //まだ登録されている
+        if (CollisionPhysicManager.CheckWaitContains(data))
+        {
+            //再起処理
+            CheckCollisionData(data, firstForce);
+        }
+        return;
+
     }
 
     /// <summary>

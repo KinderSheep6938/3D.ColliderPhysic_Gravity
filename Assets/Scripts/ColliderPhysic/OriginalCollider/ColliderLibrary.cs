@@ -6,16 +6,16 @@
 /// -----------------------------------------------------------------
 namespace ColliderLibrary
 {
-    using System.Collections.Generic;
     using UnityEngine;
+    using PhysicLibrary.Material;
 
     #region Collider情報
     //オブジェクト情報保存用
     [System.Serializable]
     public struct ColliderData
     {
-        //ローカル変換用Transform
-        [SerializeField, ReadOnly] public Transform transform;
+        //材質データ
+        [SerializeField, ReadOnly] public PhysicMaterials physic;
         //Transform情報
         [SerializeField, ReadOnly] public Vector3 position;
         [SerializeField, ReadOnly] public Quaternion rotation;
@@ -37,21 +37,6 @@ namespace ColliderLibrary
         public const int bRD    = 5; //後方右下
         public const int bLU    = 6; //後方左上
         public const int bLD    = 7; //後方左下
-    }
-
-    //衝突情報保管用
-    [System.Serializable]
-    public struct CollisionData
-    {
-        //衝突判定
-        [SerializeField, ReadOnly] public bool flag;
-        //衝突相手
-        [SerializeField, ReadOnly] public Transform[] collider;
-        //簡易衝突場所
-        [SerializeField, ReadOnly] public Vector3[] point;
-        //補完ベクトル
-        [SerializeField, ReadOnly] public Vector3 interpolate;
-
     }
     #endregion
 

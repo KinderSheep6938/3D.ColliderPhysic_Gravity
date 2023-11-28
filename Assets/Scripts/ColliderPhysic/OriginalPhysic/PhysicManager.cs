@@ -10,6 +10,7 @@ namespace PhysicLibrary.Manager
     using OriginalMath;
     using PhysicLibrary.Material;
     using PhysicLibrary.DataManager;
+    using PhysicLibrary.CollisionPhysic;
 
     /// <summary>
     /// <para>PhysicManager</para>
@@ -58,12 +59,25 @@ namespace PhysicLibrary.Manager
         }
 
         /// <summary>
+        /// <para>NoForceToCollision</para>
+        /// <para>物体にかかる力がないめり込み制御を行います</para>
+        /// </summary>
+        /// <param name="physic">対象の物質</param>
+        /// <param name="otherPhysic">めり込み情報</param>
+        /// <returns>めり込み制御用の力</returns>
+        public static Vector3 NoForceToCollision(PhysicData physic, OtherPhysicData otherPhysic)
+        {
+            return default;
+        }
+
+        /// <summary>
         /// <para>RepulsionForceByCollider</para>
         /// <para>対象の力を物質情報を考慮した値に変換します</para>
         /// </summary>
         /// <param name="physic">対象の物質</param>
+        /// <param name="otherPhysic">衝突情報</param>
         /// <returns>実際の力</returns>
-        public static Vector3 ChangeForceByPhysicMaterials(PhysicData physic)
+        public static Vector3 ChangeForceByPhysicMaterials(PhysicData physic, OtherPhysicData otherPhysic)
         {
             //Debug.Log("-------------------------------------------------------------------------");
             //返却用
@@ -71,23 +85,23 @@ namespace PhysicLibrary.Manager
             //自身の物理挙動情報を取得
             PhysicMaterials myMaterial = physic.colliderInfo.material;
             //衝突先の物理挙動情報を取得
-            PhysicMaterials collisionMaterial = PhysicDataManager.SearchPhysicByCollider(physic);
+            PhysicMaterials collisionMaterial = otherPhysic.collision;
 
             //Debug.Log(myMaterial.bounciness == collisionMaterial.bounciness);
 
             //垂直方向を取得
-            Vector3 vertical = VerticalDirectionBySurface(physic.colliderInfo);
+            Vector3 vertical = VerticalDirectionBySurface(otherPhysic);
             //垂直抗力を算出
             Vector3 verticalResistance = GetTo.V3Projection(Gravity(physic), vertical);
             //水平に働く力を取得
-            Vector3 horizontalForce = HorizontalForceBySurface(physic.colliderInfo.Collision.collider, vertical, physic.force);
-            Debug.Log("f:" + returnForce + "s:" + (verticalResistance + horizontalForce));
+            Vector3 horizontalForce = HorizontalForceBySurface(otherPhysic.collision.transform, vertical, physic.force);
+            //Debug.Log("f:" + returnForce + "s:" + (verticalResistance + horizontalForce));
 
             //動摩擦係数を算出
             float combineDynamicDrug = GetTo.ValueCombine(myMaterial.dynamicDrug, collisionMaterial.dynamicDrug, myMaterial.drugCombine);
             //静止摩擦係数を算出
             float combineStaticDrug = GetTo.ValueCombine(myMaterial.staticDrug, collisionMaterial.staticDrug, myMaterial.drugCombine);
-            Debug.Log("v:" + vertical + verticalResistance + " :h" + horizontalForce + " | " + physic.force);
+            //Debug.Log("v:" + vertical + verticalResistance + " :h" + horizontalForce + " | " + physic.force);
             //摩擦力を考慮した物質にかかる力を算出
             returnForce += AddDrug(horizontalForce, verticalResistance, combineDynamicDrug, combineStaticDrug);
 
@@ -199,10 +213,11 @@ namespace PhysicLibrary.Manager
         /// </summary>
         /// <param name="collision">対象のCollider</param>
         /// <returns>面に対する垂直方向</returns>
-        private static Vector3 VerticalDirectionBySurface(IColliderInfoAccessible collision)
+        private static Vector3 VerticalDirectionBySurface(OtherPhysicData otherPhysic)
         {
             //簡易衝突地点を取得
-            Vector3 collsionPoint = collision.Collision.collider.InverseTransformPoint(collision.Point);
+            //Debug.Log(otherPhysic.collision.transform + ":" + otherPhysic.point);
+            Vector3 collsionPoint = otherPhysic.collision.transform.InverseTransformPoint(otherPhysic.point);
             //Debug.Log("cp" + collision.Collision.point + "in" + collision.Collision.interpolate + "cpP" + collision.Point + " incp" + collsionPoint + " col" + collision.Collider.position);
 
             //正負関係なしに一番高い方向を判定する
@@ -220,12 +235,12 @@ namespace PhysicLibrary.Manager
                 //正の値である
                 if(0 < collsionPoint.x)
                 {
-                    return -collision.Collision.collider.right;
+                    return -otherPhysic.collision.transform.right;
                 }
                 //負の値である
                 else
                 {
-                    return collision.Collision.collider.right;
+                    return otherPhysic.collision.transform.right;
                 }
             }
             //Y軸が一番高い
@@ -234,12 +249,12 @@ namespace PhysicLibrary.Manager
                 //正の値である
                 if (0 < collsionPoint.y)
                 {
-                    return -collision.Collision.collider.up;
+                    return -otherPhysic.collision.transform.up;
                 }
                 //負の値である
                 else
                 {
-                    return collision.Collision.collider.up;
+                    return otherPhysic.collision.transform.up;
                 }
             }
             //Z軸が一番高い
@@ -248,12 +263,12 @@ namespace PhysicLibrary.Manager
                 //正の値である
                 if (0 < collsionPoint.z)
                 {
-                    return -collision.Collision.collider.forward;
+                    return -otherPhysic.collision.transform.forward;
                 }
                 //負の値である
                 else
                 {
-                    return collision.Collision.collider.forward;
+                    return otherPhysic.collision.transform.forward;
                 }
             }
         }

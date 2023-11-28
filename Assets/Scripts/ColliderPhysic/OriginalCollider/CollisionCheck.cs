@@ -27,61 +27,16 @@ namespace ColliderLibrary.Collision
 
         #region メソッド
         /// <summary>
-        /// <para>GetNearEdgeByCollider</para>
-        /// <para>対象のColliderから相対的に最も近い頂点座標を取得します</para>
-        /// </summary>
-        /// <param name="target">オブジェクト情報</param>
-        /// <param name="edges">頂点座標リスト</param>
-        /// <returns>最も近い頂点座標</returns>
-        public static Vector3 GetNearEdgeByCollider(ColliderData target, Vector3[] edges)
-        {
-            //算出結果保存用
-            float distance;
-            //最も近い距離保存用　初期値として-1を格納する
-            float minDistance = float.MaxValue;
-
-            //オブジェクト保存用
-            Transform localObj = target.transform;
-            //ローカル変換用
-            Vector3 localEdge;
-
-            //返却用
-            Vector3 returnPos = default;
-
-            //原点から最も近い頂点座標を検査
-            foreach (Vector3 edge in edges)
-            {
-                //ローカル変換
-                localEdge = localObj.InverseTransformPoint(edge);
-                //距離算出
-                distance = Vector3.Distance(_vectorZero, localEdge);
-
-                //算出結果が保存されている距離より大きい または 初回でない 場合は何もしない
-                if (minDistance < distance)
-                {
-                    continue;
-                }
-
-                //距離更新
-                minDistance = distance;
-                //座標設定
-                returnPos = edge;
-            }
-            //検査終了
-            return returnPos;
-        }
-
-        /// <summary>
         /// <para>CheckPointInCollider</para>
         /// <para>検査対象座標がCollider内部にあるか検査します</para>
         /// </summary>
         /// <param name="check">検査対象座標</param>
         /// <param name="collider">検査対象Collider</param>
         /// <returns>内部判定</returns>
-        public static bool CheckPointInCollider(Vector3 check, ColliderData collider)
+        public static bool CheckPointInCollider(Vector3 check, Transform collider)
         {
             //検査対象目線のローカル座標
-            Vector3 localPos = collider.transform.InverseTransformPoint(check);
+            Vector3 localPos = collider.InverseTransformPoint(check);
 
             //Colliderの各次元毎に外側にいるかを判定する
             //Colliderの X軸 において外側である
