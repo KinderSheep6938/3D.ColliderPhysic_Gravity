@@ -24,11 +24,13 @@ namespace PhysicLibrary.Manager
         private static readonly Vector3 _vectorRight = Vector3.right;
         private static readonly Vector3 _vectorUp = Vector3.up;
         private static readonly Vector3 _vectorForward = Vector3.forward;
-
         #endregion
 
         #region プロパティ
-
+        //初期重量
+        public static float CommonMass { get => 1f; }
+        //初期重力
+        public static Vector3 CommonGravity { get => _gravityScale; }
         #endregion
 
         #region メソッド
@@ -40,10 +42,16 @@ namespace PhysicLibrary.Manager
         /// <returns>対象の重力加速度</returns>
         public static Vector3 Gravity(PhysicData physic)
         {
+            //重力が０の場合は処理しない
+            if (physic.gravity == _vectorZero)
+            {
+                return _vectorZero;
+            }
+
             //重力加速度を算出 : 質量 x 重力
-            Vector3 acceleration = physic.mass * _gravityScale;
+            Vector3 acceleration = physic.mass * physic.gravity;
             //重力加速度を時間積分 : 重力加速度 x 経過時間
-            Vector3 gravityForce = physic.force + (acceleration * Time.fixedDeltaTime);
+            Vector3 gravityForce = acceleration * Time.fixedDeltaTime;
             //返却
             return gravityForce;
         }
@@ -67,19 +75,18 @@ namespace PhysicLibrary.Manager
             //Debug.Log(myMaterial.bounciness == collisionMaterial.bounciness);
 
             //垂直方向を取得
-            Vector3 vertical = VerticalForceBySurface(physic.colliderInfo);
-            //水平方向を取得
-            Vector3 horizontal = HorizontalForceBySurface(physic.colliderInfo.Collision.collider, vertical);
+            Vector3 vertical = VerticalDirectionBySurface(physic.colliderInfo);
             //垂直抗力を算出
-            Vector3 verticalResistance = GetTo.V3Projection(physic.force, vertical);
-            //面に対して水平に加わっている力を算出
-            Vector3 horizontalForce = GetTo.V3Projection(physic.force, horizontal);
+            Vector3 verticalResistance = GetTo.V3Projection(Gravity(physic), vertical);
+            //水平に働く力を取得
+            Vector3 horizontalForce = HorizontalForceBySurface(physic.colliderInfo.Collision.collider, vertical, physic.force);
             //Debug.Log("f:" + returnForce + "s:" + (verticalResistance + horizontalForce));
 
             //動摩擦係数を算出
             float combineDynamicDrug = GetTo.ValueCombine(myMaterial.dynamicDrug, collisionMaterial.dynamicDrug, myMaterial.drugCombine);
             //静止摩擦係数を算出
             float combineStaticDrug = GetTo.ValueCombine(myMaterial.staticDrug, collisionMaterial.staticDrug, myMaterial.drugCombine);
+            //Debug.Log("v:" + vertical + verticalResistance + " :h" + horizontalForce + " | " + physic.force);
             //摩擦力を考慮した物質にかかる力を算出
             returnForce += AddDrug(horizontalForce, verticalResistance, combineDynamicDrug, combineStaticDrug);
 
@@ -95,9 +102,17 @@ namespace PhysicLibrary.Manager
             return returnForce;
         }
 
+        /// <summary>
+        /// <para>AddDrug</para>
+        /// <para>摩擦力を算出します</para>
+        /// </summary>
+        /// <param name="horizontalForce">水平方向の力</param>
+        /// <param name="verticalResistance">垂直抗力</param>
+        /// <param name="dynamicDrug">動摩擦係数</param>
+        /// <param name="staticDrug">静止摩擦係数</param>
+        /// <returns>摩擦力</returns>
         private static Vector3 AddDrug(Vector3 horizontalForce, Vector3 verticalResistance, float dynamicDrug, float staticDrug)
         {
-            //Debug.Log(horizontalForce + ":" + verticalResistance);
             //Vector3をfloat変換
             float horizontalValue = horizontalForce.sqrMagnitude;
 
@@ -112,8 +127,6 @@ namespace PhysicLibrary.Manager
             //動摩擦力を返却
             return -horizontalForce * dynamicDrug;
         }
-
-
 
         /// <summary>
         /// <para>AddRepulsion</para>
@@ -186,10 +199,11 @@ namespace PhysicLibrary.Manager
         /// </summary>
         /// <param name="collision">対象のCollider</param>
         /// <returns>面に対する垂直方向</returns>
-        private static Vector3 VerticalForceBySurface(IColliderInfoAccessible collision)
+        private static Vector3 VerticalDirectionBySurface(IColliderInfoAccessible collision)
         {
             //簡易衝突地点を取得
             Vector3 collsionPoint = collision.Collision.collider.InverseTransformPoint(collision.Point);
+            //Debug.Log("cp" + collision.Collision.point + "in" + collision.Collision.interpolate + "cpP" + collision.Point + " incp" + collsionPoint + " col" + collision.Collider.position);
 
             //正負関係なしに一番高い方向を判定する
             //各成分の絶対値を取得
@@ -198,7 +212,7 @@ namespace PhysicLibrary.Manager
             float norZ = Mathf.Abs(collsionPoint.z);
             //各絶対値の最大値を取得
             float maxNor = Mathf.Max(norX, norY, norZ);
-            //Debug.Log(collsionPoint + "xyz" + norX + ":" + norY + ":" + norZ);
+            //Debug.Log(collsionPoint + "xyz" + norX + ":" + norY + ":" + norZ + " colname:" + collision.Collision.collider.name);
 
             //X軸が一番高い
             if(maxNor == norX)
@@ -251,7 +265,7 @@ namespace PhysicLibrary.Manager
         /// <param name="surface">面方向を取得できるTransform</param>
         /// <param name="vertical">垂直方向</param>
         /// <returns>垂直方向以外の方向の和</returns>
-        private static Vector3 HorizontalForceBySurface(Transform surface, Vector3 vertical)
+        private static Vector3 HorizontalForceBySurface(Transform surface, Vector3 vertical, Vector3 force)
         {
             //返却用
             Vector3 sumHorizontal = _vectorZero;
@@ -259,22 +273,22 @@ namespace PhysicLibrary.Manager
             //垂直方向が上下である
             if (vertical == surface.up || vertical == -surface.up)
             {
-                sumHorizontal += surface.right;
-                sumHorizontal += surface.forward;
+                sumHorizontal += GetTo.V3Projection(force,surface.right);
+                sumHorizontal += GetTo.V3Projection(force, surface.forward);
                 return sumHorizontal;
             }
             //垂直方向が左右である
             else if (vertical == surface.right || vertical == -surface.right)
             {
-                sumHorizontal += surface.up;
-                sumHorizontal += surface.forward;
+                sumHorizontal += GetTo.V3Projection(force, surface.up);
+                sumHorizontal += GetTo.V3Projection(force, surface.forward);
                 return sumHorizontal;
             }
             //垂直方向が前後である
             else
             {
-                sumHorizontal += surface.right;
-                sumHorizontal += surface.up;
+                sumHorizontal += GetTo.V3Projection(force, surface.right);
+                sumHorizontal += GetTo.V3Projection(force, surface.up);
                 return sumHorizontal;
             }
         }

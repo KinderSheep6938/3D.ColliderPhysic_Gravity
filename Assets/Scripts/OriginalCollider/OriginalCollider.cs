@@ -28,9 +28,6 @@ public class OriginalCollider : MonoBehaviour, IColliderInfoAccessible
     [SerializeField, Header("更新頻度")]
     private UpdateStatus _updateStatus = UpdateStatus.FixedUpdate;
 
-    //情報の共有判定
-    private bool _isSetWorld = false;
-
     //自身のTransform
     private Transform _transform = default;
     //自身のRenderer
@@ -45,6 +42,7 @@ public class OriginalCollider : MonoBehaviour, IColliderInfoAccessible
     [SerializeField, Header("当たり判定情報")]
     private ColliderData _colliderData = new();
     //衝突情報保存用
+    [SerializeField, Header("衝突情報")]
     private CollisionData _collisionData = new();
     //座標補完用の当たり判定
     private ColliderData _interpolateCol = new();
@@ -198,6 +196,7 @@ public class OriginalCollider : MonoBehaviour, IColliderInfoAccessible
             _collisionData = ColliderManager.CheckCollision(_interpolateCol);
             //補完分の移動量を設定
             _collisionData.interpolate = _rigid.Velocity;
+            Debug.DrawLine(_interpolateCol.position, _colliderData.position, Color.blue, 0.01f);
         }
 
         //デバッグ用見た目変更

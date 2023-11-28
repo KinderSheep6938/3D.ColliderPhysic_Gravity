@@ -14,7 +14,6 @@ using PhysicLibrary.Manager;
 public class OriginalRigidBody : MonoBehaviour
 {
     #region 変数
-
     //基準Vector
     private readonly Vector3 _vectorZero = Vector3.zero;
     private readonly Vector3 _vectorRight = Vector3.right;
@@ -45,14 +44,9 @@ public class OriginalRigidBody : MonoBehaviour
     [SerializeField, Header("座標固定")]
     private Freeze _freezeStatus = Freeze.None;
 
-    //無重力判定
-    [SerializeField]
-    private bool _noGravity = false;
-
-
     //自身の物理データ
     [SerializeField]
-    private PhysicData _myPhysic = new();
+    private PhysicData _physicData = new(PhysicManager.CommonMass, PhysicManager.CommonGravity);
     //自身のCollider
     private IColliderInfoAccessible _colliderAccess = default;
     //自身のTransform
@@ -63,7 +57,7 @@ public class OriginalRigidBody : MonoBehaviour
     public InterpolateStatus Interpolate { get => _interpolate; }
 
     //現在の速度
-    public Vector3 Velocity { get => _myPhysic.velocity; }
+    public Vector3 Velocity { get => _physicData.velocity; }
     #endregion
 
     #region メソッド
@@ -77,7 +71,7 @@ public class OriginalRigidBody : MonoBehaviour
         _colliderAccess = GetComponent<IColliderInfoAccessible>();
 
         //当たり判定側の接続インターフェイスを設定
-        _myPhysic.colliderInfo = _colliderAccess;
+        _physicData.colliderInfo = _colliderAccess;
 
         //ゲームオブジェクトが無効化されている場合は処理をやめる
         if (!gameObject.activeInHierarchy)
@@ -90,7 +84,7 @@ public class OriginalRigidBody : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Return))
         {
-            _myPhysic.force += new Vector3(0, 1f, 0);
+            _physicData.force += new Vector3(0, 1f, 0);
         }
     }
 
@@ -121,14 +115,8 @@ public class OriginalRigidBody : MonoBehaviour
     /// </summary>
     private void Gravity()
     {
-        //無重力に設定されているのであれば処理しない
-        if (_noGravity)
-        {
-            return;
-        }
-
         //重力加速度加算
-        _myPhysic.force = PhysicManager.Gravity(_myPhysic);
+        _physicData.force += PhysicManager.Gravity(_physicData);
 
     }
 
@@ -147,7 +135,7 @@ public class OriginalRigidBody : MonoBehaviour
         }
 
         //衝突した情報を加味して、速度を算出
-        _myPhysic.force = PhysicManager.ChangeForceByPhysicMaterials(_myPhysic);
+        _physicData.force = PhysicManager.ChangeForceByPhysicMaterials(_physicData);
         //速度に反映
         ForceToVelocity();
 
@@ -162,10 +150,10 @@ public class OriginalRigidBody : MonoBehaviour
     private void ForceToVelocity()
     {
         //初期化
-        _myPhysic.velocity = _myPhysic.force;
+        _physicData.velocity = _physicData.force;
 
         //空気抵抗を考慮
-        _myPhysic.velocity += _myPhysic.airResistance * -_myPhysic.velocity;
+        _physicData.velocity += _physicData.airResistance * -_physicData.velocity;
 
         return;
     }
@@ -182,7 +170,7 @@ public class OriginalRigidBody : MonoBehaviour
         if(_freezeStatus == Freeze.None)
         {
             //速度反映
-            _transform.position += _myPhysic.velocity;
+            _transform.position += _physicData.velocity;
             return;
         }
 
@@ -192,21 +180,21 @@ public class OriginalRigidBody : MonoBehaviour
         if(_freezeStatus != Freeze.XOnly && _freezeStatus != Freeze.XtoY && _freezeStatus != Freeze.XtoZ)
         {
             //代入
-            noFreeze += _vectorRight * _myPhysic.velocity.x;
+            noFreeze += _vectorRight * _physicData.velocity.x;
         }
 
         //Y軸が固定されていない
         if (_freezeStatus != Freeze.YOnly && _freezeStatus != Freeze.XtoY && _freezeStatus != Freeze.YtoZ)
         {
             //代入
-            noFreeze += _vectorUp * _myPhysic.velocity.y;
+            noFreeze += _vectorUp * _physicData.velocity.y;
         }
 
         //Z軸が固定されていない
         if (_freezeStatus != Freeze.ZOnly && _freezeStatus != Freeze.XtoZ && _freezeStatus != Freeze.YtoZ)
         {
             //代入
-            noFreeze += _vectorForward * _myPhysic.velocity.z;
+            noFreeze += _vectorForward * _physicData.velocity.z;
         }
 
         //固定されていない方向のみ速度を反映
@@ -221,7 +209,7 @@ public class OriginalRigidBody : MonoBehaviour
     public void AddForce(Vector3 add)
     {
         //力を加算
-        _myPhysic.force += add;
+        _physicData.force += add;
     }
     #endregion
 }

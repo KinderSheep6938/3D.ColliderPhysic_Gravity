@@ -39,16 +39,17 @@ namespace ColliderLibrary
     }
 
     //衝突情報保管用
+    [System.Serializable]
     public struct CollisionData
     {
         //衝突判定
-        public bool flag;
+        [SerializeField, ReadOnly] public bool flag;
         //衝突相手
-        public Transform collider;
+        [SerializeField, ReadOnly] public Transform collider;
         //簡易衝突場所
-        public Vector3 point;
+        [SerializeField, ReadOnly] public Vector3 point;
         //補完ベクトル
-        public Vector3 interpolate;
+        [SerializeField, ReadOnly] public Vector3 interpolate;
     }
     #endregion
 

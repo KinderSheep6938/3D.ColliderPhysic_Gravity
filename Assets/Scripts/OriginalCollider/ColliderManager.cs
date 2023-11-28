@@ -82,7 +82,7 @@ namespace ColliderLibrary.Manager
                 if (CollisionCheck.CheckPlaneLineOverlap(nearEdgeIndex, target.edgePos, collider.transform))
                 {
                     //Õ“Ëî•ñ‚ğ•Ô‹p‚·‚é
-                    return ReturnCollisionData(target, nearEdge);
+                    return ReturnCollisionData(target, GetNearEdgeByCollider(target, collider.edgePos));
                 }
 
             }
