@@ -32,6 +32,7 @@ namespace OriginalMath
         private const int HALF = 2;
         //面の最大範囲
         private const float MAXRANGE = 0.5f;
+        
         //基礎ベクトル
         private static readonly Vector2 _vectorZero = Vector2.zero;
         private static readonly Vector2 _vectorRight = Vector2.right;
@@ -58,6 +59,7 @@ namespace OriginalMath
         #endregion
 
         #region プロパティ
+        public static float Half { get => HALF; }
         public static float MaxRange { get => MAXRANGE; }
         #endregion
 

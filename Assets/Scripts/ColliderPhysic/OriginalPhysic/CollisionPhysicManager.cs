@@ -23,10 +23,10 @@ namespace PhysicLibrary.CollisionPhysic
     [System.Serializable]
     public struct PhysicCollision
     {
-        
         public readonly PhysicMaterials physicA;  //Aの材質データ
         public readonly PhysicMaterials physicB;  //Bの材質データ
         public readonly Vector3 point;            //衝突地点
+        public readonly Vector3 velocity;         //補完速度
 
         /// <summary>
         /// <para>PhysicCollision</para>
@@ -35,11 +35,13 @@ namespace PhysicLibrary.CollisionPhysic
         /// <param name="a"></param>
         /// <param name="b"></param>
         /// <param name="point">衝突地点</param>
-        public PhysicCollision(PhysicMaterials a, PhysicMaterials b, Vector3 point)
+        /// <param name="velocity">補完速度</param>
+        public PhysicCollision(PhysicMaterials a, PhysicMaterials b, Vector3 point, Vector3 velocity)
         {
             this.physicA = a;
             this.physicB = b;
             this.point = point;
+            this.velocity = velocity;
         }
 
         /// <summary>
@@ -50,13 +52,8 @@ namespace PhysicLibrary.CollisionPhysic
         /// <returns>検査結果</returns>
         public bool Contains(PhysicMaterials search)
         {
-            //PhysicAである
-            if(physicA.transform == search.transform)
-            {
-                return true;
-            }
-            //PhysicBである
-            else if(physicB.transform == search.transform)
+            //どちらかには存在する
+            if(Which(search) != PhysicThis.None)
             {
                 return true;
             }
@@ -96,7 +93,6 @@ namespace PhysicLibrary.CollisionPhysic
         /// <returns>もう片方のPhysicMaterials</returns>
         public PhysicMaterials OtherPhysic(PhysicMaterials search)
         {
-            
             //存在しない
             if (!Contains(search))
             {
@@ -106,11 +102,9 @@ namespace PhysicLibrary.CollisionPhysic
             //PhysicAである
             if(physicA.transform == search.transform)
             {
-                Debug.Log("A");
                 return physicB;
             }
             //PhysicBである
-            Debug.Log("B");
             return physicA;
         }
     }
@@ -121,6 +115,7 @@ namespace PhysicLibrary.CollisionPhysic
     {
         public readonly PhysicMaterials collision;  //相手の材質データ
         public readonly Vector3 point;              //衝突地点
+        public readonly Vector3 velocity;           //補完速度
 
         /// <summary>
         /// <para>UsePhysucData</para>
@@ -128,10 +123,12 @@ namespace PhysicLibrary.CollisionPhysic
         /// </summary>
         /// <param name="collision">相手の材質</param>
         /// <param name="point">衝突地点</param>
-        public OtherPhysicData(PhysicMaterials collision,Vector3 point)
+        /// <param name="velocity">補完速度</param>
+        public OtherPhysicData(PhysicMaterials collision,Vector3 point,Vector3 velocity)
         {
             this.collision = collision;
             this.point = point;
+            this.velocity = velocity;
         }
     }
     #endregion
@@ -159,7 +156,7 @@ namespace PhysicLibrary.CollisionPhysic
         /// <param name="physicA"></param>
         /// <param name="physicB"></param>
         /// <param name="point">衝突地点</param>
-        public static void SetCollision(PhysicMaterials physicA, PhysicMaterials physicB, Vector3 point)
+        public static void SetCollision(PhysicMaterials physicA, PhysicMaterials physicB, Vector3 point, Vector3 velocity)
         {
             //衝突している物質が同じである
             if(physicA.transform == physicB.transform)
@@ -193,7 +190,7 @@ namespace PhysicLibrary.CollisionPhysic
             }
 
             //データ追加
-            _collisionData.Add(new PhysicCollision(physicA, physicB, point));
+            _collisionData.Add(new PhysicCollision(physicA, physicB, point, velocity));
             //対象の物質にRigidbodyがついていない場合
             // -> 相手に考慮する必要はないので確認済みと判定する
             _physicAChecks.Add(!physicA.rigid);
@@ -315,7 +312,8 @@ namespace PhysicLibrary.CollisionPhysic
                 if (collision.Contains(search) && !PhysicToCheckLog(collision,search))
                 {
                     //使用するデータをまとめる
-                    OtherPhysicData returnData = new OtherPhysicData(collision.OtherPhysic(search), collision.point);
+                    OtherPhysicData returnData = new OtherPhysicData(collision.OtherPhysic(search), collision.point, collision.velocity);
+                    //確認済みと設定する
                     CheckIn(collision, collision.Which(search));
                     //衝突データを削除検査
                     CheckRemoveCollision(collision);

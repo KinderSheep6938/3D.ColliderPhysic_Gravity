@@ -89,6 +89,19 @@ namespace PhysicLibrary
                 this.drugCombine = copy.drugCombine;
                 this.bounceCombine = copy.bounceCombine;
             }
+
+            public PhysicMaterials(PhysicMaterials copy,Vector3 interpolateVelocity, Vector3 interpolateScale)
+            {
+                this.rigid = copy.rigid;
+                this.transform = copy.transform;
+                this.transform.position += interpolateVelocity;
+                this.transform.localScale += interpolateScale;
+                this.dynamicDrug = copy.dynamicDrug;
+                this.staticDrug = copy.staticDrug;
+                this.bounciness = copy.bounciness;
+                this.drugCombine = copy.drugCombine;
+                this.bounceCombine = copy.bounceCombine;
+            }
         }
         #endregion
     }

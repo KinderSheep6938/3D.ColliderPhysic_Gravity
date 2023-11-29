@@ -71,7 +71,7 @@ public class Player : MonoBehaviour
 
         //ˆÚ“®‚³‚¹‚é
         _rigid.AddForce(set * _speed * Time.deltaTime);
-        Debug.Log(input);
+        //Debug.Log(input);
     }
 
     /// <summary>

@@ -16,7 +16,7 @@ public class OriginalRigidBody : MonoBehaviour
 {
     #region 変数
     //最小速度
-    private const float PERMISSION_MINMAGUNITYDE= 0.00001f;
+    private const float PERMISSION_MINMAGUNITYDE = 0.0001f;
 
     //基準Vector
     private readonly Vector3 _vectorZero = Vector3.zero;
@@ -41,6 +41,8 @@ public class OriginalRigidBody : MonoBehaviour
 
     //面の衝突判定
     private bool _onSurface = false;
+    //重力加速度
+    private Vector3 _gravity = default;
 
     //自身の物理データ
     [SerializeField]
@@ -49,6 +51,8 @@ public class OriginalRigidBody : MonoBehaviour
     private IColliderInfoAccessible _colliderAccess = default;
     //自身のTransform
     private Transform _transform = default;
+    //過去の衝突データ
+    private OtherPhysicData _oldCollision = default;
     #endregion
 
     #region プロパティ
@@ -93,6 +97,7 @@ public class OriginalRigidBody : MonoBehaviour
     /// </summary>
     private void FixedUpdate()
     {
+
         //座標が全て固定されている場合は何もしない
         if(_freezeStatus == Freeze.All)
         {
@@ -116,10 +121,10 @@ public class OriginalRigidBody : MonoBehaviour
     private void Gravity()
     {
         //重力加速度加算
-        Vector3 gravity = PhysicManager.Gravity(_physicData);
+        _gravity = PhysicManager.Gravity(_physicData);
 
         //重力によって衝突する
-        if (_colliderAccess.CheckCollisionToInterpolate(gravity))
+        if (_colliderAccess.CheckCollisionToInterpolate(_gravity))
         {
             //面衝突判定を設定
             _onSurface = true;
@@ -128,7 +133,7 @@ public class OriginalRigidBody : MonoBehaviour
         //面衝突判定を消去
         _onSurface = false;
         //重力を加算
-        _physicData.force += gravity;
+        _physicData.force += _gravity;
 
     }
 
@@ -138,14 +143,6 @@ public class OriginalRigidBody : MonoBehaviour
     /// </summary>
     private void ColliderRepulsion()
     {
-        //現在かかっている力がない
-        if(_physicData.force == _vectorZero)
-        {
-            //速度を初期化
-            _physicData.velocity = _vectorZero;
-            return;
-        }
-
         //現在かかっている力を速度に変換
         Vector3 interpolateVelocity = ForceToVelocity();
 
@@ -169,8 +166,9 @@ public class OriginalRigidBody : MonoBehaviour
         //最小重力加速度設定
         //_minGravity = PhysicManager.Gravity(_physicData);
         //_physicData.force += _minGravity;
+                Debug.Log("-----------------------------------------------------");
         //衝突情報を検索
-        CheckCollisionData(_physicData.colliderInfo.material, _physicData.force);
+        CheckCollisionData(_physicData.colliderInfo.material);
         //_physicData.force += _minGravity;
 
         //反発後の力が最低値以下であれば物質にかかる力を消去する
@@ -191,30 +189,42 @@ public class OriginalRigidBody : MonoBehaviour
     /// <para>再起処理</para>
     /// </summary>
     /// <param name="data">検査対象</param>
-    private void CheckCollisionData(PhysicMaterials data, Vector3 firstForce)
+    private void CheckCollisionData(PhysicMaterials data)
     {
         //登録されていない場合は処理しない
         if (!CollisionPhysicManager.CheckWaitContains(data))
         {
             return;
         }
+        OtherPhysicData use = CollisionPhysicManager.GetCollision(data);
 
-        if(firstForce == _vectorZero)
+        Debug.Log("m" + use.velocity.sqrMagnitude + "f" + _physicData.force.sqrMagnitude + "Us" + use.point);
+        //衝突した情報を加味して、力を算出
+        _physicData.force = PhysicManager.ChangeForceByPhysicMaterials(_physicData, use);
+
+        //めり込んでいる
+        if (use.velocity.sqrMagnitude <= PERMISSION_MINMAGUNITYDE) 
         {
             //めり込み制御
-            _physicData.force = PhysicManager.NoForceToCollision(_physicData, CollisionPhysicManager.GetCollision(data));
-        }
-        else
-        {
-            //衝突した情報を加味して、力を算出
-            _physicData.force = PhysicManager.ChangeForceByPhysicMaterials(_physicData, CollisionPhysicManager.GetCollision(data));
+            Vector3 intrusion = PhysicManager.NoForceToCollision(_physicData, use);
+            Debug.Log("CollFor :" + intrusion);
+            //まだ登録されている
+            if (CollisionPhysicManager.CheckWaitContains(data))
+            {
+                //再起処理
+                CheckCollisionData(data);
+            }
+            //めり込み防止力を設定
+            _physicData.force += intrusion;
+            return;
+            
         }
 
         //まだ登録されている
         if (CollisionPhysicManager.CheckWaitContains(data))
         {
             //再起処理
-            CheckCollisionData(data, firstForce);
+            CheckCollisionData(data);
         }
         return;
 
@@ -226,12 +236,6 @@ public class OriginalRigidBody : MonoBehaviour
     /// </summary>
     private Vector3 ForceToVelocity()
     {
-        //物質にかかっている力がない
-        if (_physicData.force == _vectorZero)
-        {
-            return _vectorZero;
-        }
-
         //返却用
         Vector3 returnVelocity = _physicData.force;
         

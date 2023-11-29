@@ -9,7 +9,6 @@ namespace PhysicLibrary.Manager
     using UnityEngine;
     using OriginalMath;
     using PhysicLibrary.Material;
-    using PhysicLibrary.DataManager;
     using PhysicLibrary.CollisionPhysic;
 
     /// <summary>
@@ -19,6 +18,8 @@ namespace PhysicLibrary.Manager
     public class PhysicManager
     {
         #region 変数
+        //めり込み反発倍率
+        private const float REPULESSION_RATIO = 1.02f;
         //重力
         private static readonly Vector3 _gravityScale = new(0f, -9.81f, 0f);
         //基礎ベクトル
@@ -64,10 +65,24 @@ namespace PhysicLibrary.Manager
         /// </summary>
         /// <param name="physic">対象の物質</param>
         /// <param name="otherPhysic">めり込み情報</param>
+        /// <param name="AirResistance">空気抵抗</param>
         /// <returns>めり込み制御用の力</returns>
         public static Vector3 NoForceToCollision(PhysicData physic, OtherPhysicData otherPhysic)
         {
-            return default;
+            Debug.Log(physic.colliderInfo.material.transform + ":" + otherPhysic.collision.transform);
+            //垂直方向をScaleに正規化して取得（垂直方向であり面までの距離ベクトル）
+            Vector3 surfaceVerticalDis = VerticalDirectionBySurface(otherPhysic,otherPhysic.collision.transform.lossyScale);
+            //衝突地点までの垂直な距離ベクトル
+            Vector3 collisionVerticalDis = GetTo.V3Projection(otherPhysic.point - otherPhysic.collision.transform.position, surfaceVerticalDis);
+            //衝突地点から面までの距離ベクトルを取得
+            Vector3 collisionToSurface = surfaceVerticalDis - collisionVerticalDis;
+            //Debug.Log(surfaceVerticalDis + ":" + collisionVerticalDis + ":" + collisionToSurface);
+        
+
+            //空気抵抗分を考慮して加算
+            Vector3 returnForce = collisionToSurface + (collisionToSurface * physic.airResistance);
+
+            return returnForce;
         }
 
         /// <summary>
@@ -210,15 +225,16 @@ namespace PhysicLibrary.Manager
         /// <summary>
         /// <para>VerticalForceBySurface</para>
         /// <para>面に対する垂直方向を取得します</para>
+        /// <para>大きさが設定された場合は、垂直方向をスケーリング</para>
         /// </summary>
-        /// <param name="collision">対象のCollider</param>
+        /// <param name="otherPhysic">衝突対象のCollider</param>
+        /// <param name="scale">Colliderの大きさ</param>
         /// <returns>面に対する垂直方向</returns>
-        private static Vector3 VerticalDirectionBySurface(OtherPhysicData otherPhysic)
+        private static Vector3 VerticalDirectionBySurface(OtherPhysicData otherPhysic, Vector3 scale = default)
         {
             //簡易衝突地点を取得
-            //Debug.Log(otherPhysic.collision.transform + ":" + otherPhysic.point);
             Vector3 collsionPoint = otherPhysic.collision.transform.InverseTransformPoint(otherPhysic.point);
-            //Debug.Log("cp" + collision.Collision.point + "in" + collision.Collision.interpolate + "cpP" + collision.Point + " incp" + collsionPoint + " col" + collision.Collider.position);
+            //Debug.Log(otherPhysic.collision.transform + ":" + otherPhysic.point);
 
             //正負関係なしに一番高い方向を判定する
             //各成分の絶対値を取得
@@ -229,48 +245,78 @@ namespace PhysicLibrary.Manager
             float maxNor = Mathf.Max(norX, norY, norZ);
             //Debug.Log(collsionPoint + "xyz" + norX + ":" + norY + ":" + norZ + " colname:" + collision.Collision.collider.name);
 
+
+            Vector3 transformDire;
+            float scaleRatio = 0;
             //X軸が一番高い
             if(maxNor == norX)
             {
-                //正の値である
-                if(0 < collsionPoint.x)
+                //Scaleが設定されている
+                if (scale != default)
                 {
-                    return -otherPhysic.collision.transform.right;
+                    scaleRatio = scale.x;
+                }
+
+                //正の値である
+                if (0 < collsionPoint.x)
+                {
+                    transformDire = otherPhysic.collision.transform.right;
                 }
                 //負の値である
                 else
                 {
-                    return otherPhysic.collision.transform.right;
+                    transformDire = -otherPhysic.collision.transform.right;
                 }
             }
             //Y軸が一番高い
             else if(maxNor == norY)
             {
+                //Scaleが設定されている
+                if (scale != default)
+                {
+                    scaleRatio = scale.y;
+                }
+
                 //正の値である
                 if (0 < collsionPoint.y)
                 {
-                    return -otherPhysic.collision.transform.up;
+                    transformDire = otherPhysic.collision.transform.up;
                 }
                 //負の値である
                 else
                 {
-                    return otherPhysic.collision.transform.up;
+                    transformDire = -otherPhysic.collision.transform.up;
                 }
             }
             //Z軸が一番高い
             else
             {
+                //Scaleが設定されている
+                if (scale != default)
+                {
+                    scaleRatio = scale.z;
+                }
+
                 //正の値である
                 if (0 < collsionPoint.z)
                 {
-                    return -otherPhysic.collision.transform.forward;
+                    transformDire = otherPhysic.collision.transform.forward;
                 }
                 //負の値である
                 else
                 {
-                    return otherPhysic.collision.transform.forward;
+                    transformDire = -otherPhysic.collision.transform.forward;
                 }
             }
+
+            //Scale倍率が設定されている
+            if(scaleRatio != 0)
+            {
+                //Scale倍率の絶対値の半分を方向ベクトルにかけた値 が 中心から面までの垂直な距離ベクトル となる
+                transformDire *= (Mathf.Abs(scaleRatio) / GetTo.Half);
+            }
+            //返却
+            return transformDire;
         }
 
         /// <summary>

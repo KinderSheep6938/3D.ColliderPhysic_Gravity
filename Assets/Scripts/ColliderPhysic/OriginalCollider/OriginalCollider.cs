@@ -156,13 +156,10 @@ public class OriginalCollider : MonoBehaviour, IColliderInfoAccessible
         _onCollision = CollisionPhysicManager.CheckWaitContains(_physicMaterial);
 
         //Transformî•ñ‚ª•Ï‚í‚Á‚Ä‚È‚¢ ‚©‚Â ¡‚Ü‚Å‚ÉÕ“Ë‚ª‚È‚¢
-        if (!_transform.hasChanged && !_onCollision)
+        if (!_transform.hasChanged)
         {
             return;
         }
-
-        //Transform‚ÉŠî‚Ã‚¢‚ÄCollider‚ğì¬‚·‚é
-        _colliderData = ColliderEditor.SetColliderDataByCube(_physicMaterial);
 
         //Õ“ËŠm”F
         CheckCollision();
@@ -177,13 +174,16 @@ public class OriginalCollider : MonoBehaviour, IColliderInfoAccessible
     /// </summary>
     private void CheckCollision()
     {
-        //Õ“Ë‚ª‚È‚¢
-        if (!_onCollision)
+        //Transform‚ÉŠî‚Ã‚¢‚ÄCollider‚ğì¬‚·‚é
+        _colliderData = ColliderEditor.SetColliderDataByCube(_physicMaterial);
+
+        //Šù‚ÉÕ“Ë”»’è‚ª‚ ‚é
+        if (_onCollision)
         {
-            //Õ“Ë”»’è‚ğæ“¾‚·‚é
-            _onCollision = ColliderManager.CheckCollision(_colliderData);
-            Debug.Log(_onCollision);
+            return;
         }
+        //Õ“Ë”»’è‚ğæ“¾‚·‚é
+        _onCollision = ColliderManager.CheckCollision(_colliderData);
     }
 
     /// <summary>
@@ -194,6 +194,8 @@ public class OriginalCollider : MonoBehaviour, IColliderInfoAccessible
     /// <returns>Õ“Ë”»’è</returns>
     bool IColliderInfoAccessible.CheckCollisionToInterpolate(Vector3 velocity, bool saveCollision)
     {
+        Debug.DrawLine(_colliderData.position, _colliderData.position + velocity, Color.yellow);
+
         //Šù‚ÉÕ“Ë”»’è‚ª‚ ‚éê‡
         if (_onCollision)
         {

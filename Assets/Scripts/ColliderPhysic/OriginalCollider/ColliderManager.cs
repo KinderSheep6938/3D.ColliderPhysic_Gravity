@@ -55,12 +55,14 @@ namespace ColliderLibrary.Manager
                     continue;
                 }
 
+                //自身の頂点座標 から 最も検査対象に近い頂点座標 を格納
+                nearEdge = GetNearEdgeByCollider(target, collider.edgePos);
                 //自身の中心座標 が 検査対象のCollider の内部にある
                 if (CollisionCheck.CheckPointInCollider(collider.position, target.physic.transform))
                 {
                     //衝突情報を設定する
-                    saveTarget.Add(target.physic); 
-                    savePoint.Add(collider.position);
+                    saveTarget.Add(target.physic);
+                    savePoint.Add(nearEdge);
                     continue;
                 }
 
@@ -69,12 +71,10 @@ namespace ColliderLibrary.Manager
                 {
                     //衝突情報を設定する
                     saveTarget.Add(target.physic);
-                    savePoint.Add(target.position);
+                    savePoint.Add(nearEdge);
                     continue;
                 }
 
-                //自身の頂点座標 から 最も検査対象に近い頂点座標 を格納
-                nearEdge = GetNearEdgeByCollider(target, collider.edgePos);
                 //その頂点座標のインデックス取得
                 nearEdgeIndex = Array.IndexOf(collider.edgePos, nearEdge);
                 //その頂点から面上に別頂点へ結ぶことのできる線 が 検査対象のCollider に重なる
@@ -102,7 +102,7 @@ namespace ColliderLibrary.Manager
             }
 
             //設定された情報がない
-            if(saveTarget.Count == 0)
+            if (saveTarget.Count == 0)
             {
                 //衝突判定がない
                 return false;
@@ -111,15 +111,15 @@ namespace ColliderLibrary.Manager
             else
             {
                 //座標補完がある
-                if(interpolate != default)
+                if (interpolate != default)
                 {
-                    RemoveInterpolate(interpolate,ref savePoint);
+                    RemoveInterpolate(interpolate, ref savePoint);
                 }
                 //衝突データを保存するか
                 if (saveCollision)
                 {
                     //衝突データを格納
-                    SetCollisionData(collider.physic, saveTarget.ToArray(), savePoint.ToArray());
+                    SetCollisionData(collider.physic, saveTarget.ToArray(), savePoint.ToArray(), interpolate);
                 }
                 //衝突判定がある
                 return true;
@@ -177,7 +177,7 @@ namespace ColliderLibrary.Manager
         /// </summary>
         /// <param name="interpolate">補完距離</param>
         /// <param name="point">登録された衝突地点</param>
-        private static void RemoveInterpolate(Vector3 interpolate,ref List<Vector3> point)
+        private static void RemoveInterpolate(Vector3 interpolate, ref List<Vector3> point)
         {
             //衝突が１つしかない場合
             if (point.Count == 1)
@@ -202,20 +202,23 @@ namespace ColliderLibrary.Manager
         /// <param name="myPhysic">自身のPhysic</param>
         /// <param name="collisionPhysic">衝突のあった各Physic</param>
         /// <param name="point">各衝突地点</param>
-        private static void SetCollisionData(PhysicMaterials myPhysic,PhysicMaterials[] collisionPhysic,Vector3[] point)
+        private static void SetCollisionData(PhysicMaterials myPhysic, PhysicMaterials[] collisionPhysic, Vector3[] point, Vector3 interpolate)
         {
+            
             //衝突が１つしかない場合
-            if(collisionPhysic.Length == 1)
+            if (collisionPhysic.Length == 1)
             {
                 //登録
-                CollisionPhysicManager.SetCollision(myPhysic, collisionPhysic[0], point[0]);
+                CollisionPhysicManager.SetCollision(myPhysic, collisionPhysic[0], point[0], interpolate);
                 return;
             }
             //複数の衝突を登録
-            for(int i = 0; i < collisionPhysic.Length; i++)
+            for (int i = 0; i < collisionPhysic.Length; i++)
             {
+                Debug.Log(collisionPhysic[i] + "[" + point[i] + "[" + interpolate);
                 //登録
-                CollisionPhysicManager.SetCollision(myPhysic, collisionPhysic[i], point[i]);
+                CollisionPhysicManager.SetCollision(myPhysic, collisionPhysic[i], point[i], interpolate);
+                Debug.Log("1<<");
             }
             return;
         }

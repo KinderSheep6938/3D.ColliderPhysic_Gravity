@@ -40,19 +40,19 @@ namespace ColliderLibrary.Collision
 
             //Colliderの各次元毎に外側にいるかを判定する
             //Colliderの X軸 において外側である
-            if (_collisionRange < localPos.x || localPos.x < -_collisionRange)
+            if (_collisionRange <= localPos.x || localPos.x <= -_collisionRange)
             {
                 //内部にいない
                 return false;
             }
             //Colliderの Y軸 において外側である
-            if (_collisionRange < localPos.y || localPos.y < -_collisionRange)
+            if (_collisionRange <= localPos.y || localPos.y <= -_collisionRange)
             {
                 //内部にいない
                 return false;
             }
             //Colliderの Z軸 において外側である
-            if (_collisionRange < localPos.z || localPos.z < -_collisionRange)
+            if (_collisionRange <= localPos.z || localPos.z <= -_collisionRange)
             {
                 //内部にいない
                 return false;
@@ -174,13 +174,13 @@ namespace ColliderLibrary.Collision
         private static bool CheckPointInPlane(Vector2 point)
         {
             //座標が面の横幅外である
-            if (point.x < -_collisionRange || _collisionRange < point.x)
+            if (point.x <= -_collisionRange || _collisionRange <= point.x)
             {
                 return false;
             }
 
             //座標が面の縦幅外である
-            if (point.y < -_collisionRange || _collisionRange < point.y)
+            if (point.y <= -_collisionRange || _collisionRange <= point.y)
             {
                 return false;
             }
@@ -262,8 +262,8 @@ namespace ColliderLibrary.Collision
             if (edges[0].x != edges[1].x && edges[0].y != edges[1].y)
             {
                 //対象ベクトルの傾きが最大値・最小値の範囲内である
-                if ((edgeMinSlope.x <= lineSlope.x && lineSlope.x <= edgeMaxSlope.x)
-                    && (edgeMinSlope.y <= lineSlope.y && lineSlope.y <= edgeMaxSlope.y))
+                if ((edgeMinSlope.x < lineSlope.x && lineSlope.x < edgeMaxSlope.x)
+                    && (edgeMinSlope.y < lineSlope.y && lineSlope.y < edgeMaxSlope.y))
                 {
                     //範囲内である
                     return true;
@@ -275,7 +275,7 @@ namespace ColliderLibrary.Collision
             else if (edges[0].x == edges[1].x)
             {
                 //対象ベクトルの傾きのY軸が最大値・最小値の範囲内であるか
-                if (edgeMinSlope.y <= lineSlope.y && lineSlope.y <= edgeMaxSlope.y)
+                if (edgeMinSlope.y < lineSlope.y && lineSlope.y < edgeMaxSlope.y)
                 {
                     //範囲内である
                     return true;
@@ -287,7 +287,7 @@ namespace ColliderLibrary.Collision
             else
             {
                 //対象ベクトルの傾きのY軸が最大値・最小値の範囲外であるか
-                if (edgeMinSlope.x <= lineSlope.x && lineSlope.x <= edgeMaxSlope.x)
+                if (edgeMinSlope.x < lineSlope.x && lineSlope.x < edgeMaxSlope.x)
                 {
                     //範囲内である
                     return true;
