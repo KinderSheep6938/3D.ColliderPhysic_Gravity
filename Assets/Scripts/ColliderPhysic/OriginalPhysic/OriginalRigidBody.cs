@@ -53,6 +53,9 @@ public class OriginalRigidBody : MonoBehaviour
     private IColliderInfoAccessible _colliderAccess = default;
     //自身のTransform
     private Transform _transform = default;
+    //一番最後に使用した衝突データ
+    private OtherPhysicData _usedCollisionData = default;
+
     #endregion
 
     #region プロパティ
@@ -144,7 +147,7 @@ public class OriginalRigidBody : MonoBehaviour
     private void ColliderRepulsion()
     {
         //現在かかっている力を速度に変換
-        Vector3 interpolateVelocity = ForceToVelocity();
+        Vector3 interpolateVelocity = ForceToVelocity(_physicData.force);
 
         //Colliderが設定されていない
         if (_colliderAccess == default)
@@ -162,7 +165,7 @@ public class OriginalRigidBody : MonoBehaviour
             return;
         }
 
-        Debug.Log("-----------------------------------------------------");
+        //Debug.Log("-----------------------------------------------------");
         //初回処理設定
         _isOnce = true;
         //衝突情報を検索
@@ -175,7 +178,7 @@ public class OriginalRigidBody : MonoBehaviour
             _physicData.force = _vectorZero;
         }
         //反発後の力を速度に反映
-        _physicData.velocity = ForceToVelocity();
+        _physicData.velocity = ForceToVelocity(_physicData.force);
 
         //衝突している物体の状況を加味して、速度を算出
         //_myPhysic.velocity = -(_myPhysic.reboundRatio * _myPhysic.velocity);
@@ -195,11 +198,17 @@ public class OriginalRigidBody : MonoBehaviour
             //初回処理か
             if (_isOnce)
             {
+                //Debug.Log("once");
                 _isOnce = false;
                 //重力であたる物体を検査
-                _colliderAccess.CheckCollisionToInterpolate(_gravity, true);
+                _colliderAccess.CheckCollisionToInterpolate(ForceToVelocity(_gravity), true);
                 //再起処理
                 CheckCollisionData(data);
+            }
+            else 
+            {
+                //実際の力に反映
+                _physicData.force = ChangeForceByPhysic(_physicData, _usedCollisionData);
             }
             return;
         }
@@ -207,27 +216,12 @@ public class OriginalRigidBody : MonoBehaviour
         _isOnce = false;
 
         //使用する衝突データを取得
-        OtherPhysicData use = CollisionPhysicManager.GetCollision(data);
-        Debug.Log("m" + use.interpolate + "f" + _physicData.force.sqrMagnitude + "Us" + use.point);
-        Debug.Log(_physicData.force);
-        //摩擦力取得
-        Vector3 friction = PhysicManager.FrictionForceByPhysicMaterials(_physicData, use);
-        _physicData.force += friction;
-        Debug.Log("Fri" + friction);
-        //反発力取得
-        Vector3 repulsion = PhysicManager.RepulsionForceByPhysicMaterials(_physicData, use);
-        Debug.Log("Repu" + repulsion);
+        _usedCollisionData = CollisionPhysicManager.GetCollision(data);
+        //Debug.Log("m" + _usedCollisionData.interpolate + "f" + _physicData.force.sqrMagnitude + "Us" + _usedCollisionData.point);
+        //Debug.Log(_physicData.force);
         //実際の力に反映
-        _physicData.force = repulsion;
-        Debug.Log(_physicData.force);
-
-
-        //めり込み制御
-        Vector3 intrusion = PhysicManager.NoForceToCollision(_physicData, use);
-        Debug.Log("CollFor :" + intrusion);
-        //めり込み防止力を設定
-        _physicData.force += intrusion;
-        
+        _physicData.force = ChangeForceByPhysic(_physicData, _usedCollisionData);
+        //Debug.Log(_physicData.force);
 
         //まだ登録されている
         if (CollisionPhysicManager.CheckWaitContains(data))
@@ -236,17 +230,47 @@ public class OriginalRigidBody : MonoBehaviour
             CheckCollisionData(data);
         }
         return;
+    }
 
+    /// <summary>
+    /// <para>ChangeForceByPhysic</para>
+    /// <para>物質にかかる力を</para>
+    /// </summary>
+    /// <param name="myPhysic">自身の物質</param>
+    /// <param name="environment">衝突環境</param>
+    /// <returns>環境影響後の力</returns>
+    private Vector3 ChangeForceByPhysic(PhysicData myPhysic, OtherPhysicData environment)
+    {
+        //面に対し水平方向の力取得
+        Vector3 horizontalForce = PhysicManager.HorizontalForceByPhysicMaterials(myPhysic, environment);
+        //Debug.Log("Hor" + horizontalForce);
+        //面に対し垂直方向の力取得
+        Vector3 verticalForce = PhysicManager.VerticalForceByPhysicMaterials(myPhysic, environment);
+        //Debug.Log("Repu" + verticalForce);
+        //合成
+        Vector3 returnForce = horizontalForce + verticalForce;
+
+        //垂直方向に働く力がない
+        if (verticalForce == _vectorZero)
+        {
+            //面に接するように力を加える
+            Vector3 intrusion = PhysicManager.NoForceToCollision(_physicData, environment);
+            //Debug.Log("CollFor :" + intrusion);
+
+            returnForce += intrusion;
+        }
+
+        return returnForce; 
     }
 
     /// <summary>
     /// <para>ForceToVelocity</para>
     /// <para>物体に与えられた力を速度に変換します</para>
     /// </summary>
-    private Vector3 ForceToVelocity()
+    private Vector3 ForceToVelocity(Vector3 force)
     {
         //返却用
-        Vector3 returnVelocity = _physicData.force;
+        Vector3 returnVelocity = force;
         
         //空気抵抗を考慮
         returnVelocity += _physicData.airResistance * -returnVelocity;

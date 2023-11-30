@@ -42,6 +42,8 @@ namespace ColliderLibrary.Manager
             //データ一時保存用
             List<PhysicMaterials> saveTarget = new();
             saveTarget.Clear();
+            List<int> saveEdge = new();
+            saveEdge.Clear();
             List<Vector3> savePoint = new();
             savePoint.Clear();
 
@@ -57,12 +59,13 @@ namespace ColliderLibrary.Manager
 
                 //自身の頂点座標 から 最も検査対象に近い頂点座標 を格納
                 nearEdge = GetNearEdgeByCollider(target, collider.edgePos);
+                //その頂点座標のインデックス取得
+                nearEdgeIndex = Array.IndexOf(collider.edgePos, nearEdge);
                 //自身の中心座標 が 検査対象のCollider の内部にある
                 if (CollisionCheck.CheckPointInCollider(collider.position, target.physic.transform))
                 {
                     //衝突情報を設定する
-                    saveTarget.Add(target.physic);
-                    savePoint.Add(nearEdge);
+                    Save(target);
                     continue;
                 }
 
@@ -70,32 +73,27 @@ namespace ColliderLibrary.Manager
                 if (CollisionCheck.CheckPointInCollider(target.position, collider.physic.transform))
                 {
                     //衝突情報を設定する
-                    saveTarget.Add(target.physic);
-                    savePoint.Add(nearEdge);
+                    Save(target);
                     continue;
                 }
 
-                //その頂点座標のインデックス取得
-                nearEdgeIndex = Array.IndexOf(collider.edgePos, nearEdge);
                 //その頂点から面上に別頂点へ結ぶことのできる線 が 検査対象のCollider に重なる
                 if (CollisionCheck.CheckPlaneLineOverlap(nearEdgeIndex, collider.edgePos, target.physic.transform))
                 {
                     //衝突情報を設定する
-                    saveTarget.Add(target.physic);
-                    savePoint.Add(nearEdge);
+                    Save(target);
                     continue;
                 }
 
                 //検査対象の頂点座標 から 最も自身に近い頂点座標 を格納
-                nearEdge = GetNearEdgeByCollider(collider, target.edgePos);
+                Vector3 nearTargetEdge = GetNearEdgeByCollider(collider, target.edgePos);
                 //その頂点座標のインデックス取得
-                nearEdgeIndex = Array.IndexOf(target.edgePos, nearEdge);
+                int nearTargetEdgeIndex = Array.IndexOf(target.edgePos, nearTargetEdge);
                 //その頂点から面上に別頂点へ結ぶことのできる線 が 自身のCollider に重なる
-                if (CollisionCheck.CheckPlaneLineOverlap(nearEdgeIndex, target.edgePos, collider.physic.transform))
+                if (CollisionCheck.CheckPlaneLineOverlap(nearTargetEdgeIndex, target.edgePos, collider.physic.transform))
                 {
                     //衝突情報を設定する
-                    saveTarget.Add(target.physic);
-                    savePoint.Add(GetNearEdgeByCollider(target, collider.edgePos));
+                    Save(target);
                     continue;
                 }
 
@@ -119,10 +117,19 @@ namespace ColliderLibrary.Manager
                 if (saveCollision)
                 {
                     //衝突データを格納
-                    SetCollisionData(collider.physic, saveTarget.ToArray(), savePoint.ToArray(), interpolate);
+                    SetCollisionData(collider.physic, saveTarget.ToArray(), saveEdge.ToArray(), savePoint.ToArray(), interpolate);
                 }
                 //衝突判定がある
                 return true;
+            }
+
+            //リスト保存用ローカルメソッド
+            void Save(ColliderData target)
+            {
+                //衝突情報を設定する
+                saveTarget.Add(target.physic);
+                saveEdge.Add(nearEdgeIndex);
+                savePoint.Add(nearEdge);
             }
         }
 
@@ -202,7 +209,7 @@ namespace ColliderLibrary.Manager
         /// <param name="myPhysic">自身のPhysic</param>
         /// <param name="collisionPhysic">衝突のあった各Physic</param>
         /// <param name="point">各衝突地点</param>
-        private static void SetCollisionData(PhysicMaterials myPhysic, PhysicMaterials[] collisionPhysic, Vector3[] point, Vector3 interpolate)
+        private static void SetCollisionData(PhysicMaterials myPhysic, PhysicMaterials[] collisionPhysic,int[] edgeId, Vector3[] point, Vector3 interpolate)
         {
             //補完速度はあるか
             bool interpolateFlag = (interpolate != _vectorZero);
@@ -211,7 +218,7 @@ namespace ColliderLibrary.Manager
             if (collisionPhysic.Length == 1)
             {
                 //登録
-                CollisionPhysicManager.SetCollision(myPhysic, collisionPhysic[0], point[0], interpolateFlag);
+                CollisionPhysicManager.SetCollision(myPhysic, collisionPhysic[0],edgeId[0] , point[0], interpolateFlag);
                 return;
             }
             //複数の衝突を登録
@@ -219,7 +226,7 @@ namespace ColliderLibrary.Manager
             {
                 Debug.Log(collisionPhysic[i] + "[" + point[i] + "[" + interpolate);
                 //登録
-                CollisionPhysicManager.SetCollision(myPhysic, collisionPhysic[i], point[i], interpolateFlag);
+                CollisionPhysicManager.SetCollision(myPhysic, collisionPhysic[i],edgeId[i], point[i], interpolateFlag);
                 Debug.Log("1<<");
             }
             return;

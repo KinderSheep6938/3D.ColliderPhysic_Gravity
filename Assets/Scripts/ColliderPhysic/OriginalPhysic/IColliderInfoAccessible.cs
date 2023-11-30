@@ -13,6 +13,8 @@ using PhysicLibrary.Material;
 public interface IColliderInfoAccessible
 {
     #region プロパティ
+    public Vector3[] Edge { get; }
+
     //物理挙動情報
     public PhysicMaterials material { get; }
     #endregion

@@ -69,37 +69,44 @@ namespace PhysicLibrary.Manager
         /// <returns>めり込み制御用の力</returns>
         public static Vector3 NoForceToCollision(PhysicData physic, OtherPhysicData otherPhysic)
         {
-            Debug.Log(physic.colliderInfo.material.transform + ":" + otherPhysic.collision.transform);
+            //Debug.Log(physic.colliderInfo.material.transform + ":" + otherPhysic.collision.transform);
             //垂直方向の面までの距離ベクトル
             Vector3 surfaceVerticalDis = VerticalDirectionBySurface(otherPhysic,otherPhysic.collision.transform.lossyScale);
             //衝突地点までの垂直な距離ベクトル
-            Vector3 collisionVerticalDis = GetTo.V3Projection(otherPhysic.point - otherPhysic.collision.transform.position, surfaceVerticalDis);
+            Vector3 collisionVerticalDis = GetTo.V3Projection(physic.colliderInfo.Edge[otherPhysic.edgeId] - otherPhysic.collision.transform.position, surfaceVerticalDis);
             //衝突地点から面までの距離ベクトルを取得
             Vector3 collisionToSurface = surfaceVerticalDis - collisionVerticalDis;
             //Debug.Log(surfaceVerticalDis + ":" + collisionVerticalDis + ":" + collisionToSurface);
         
-            //衝突地点の距離ベクトルが面までの距離ベクトル以上である
-            if(surfaceVerticalDis.sqrMagnitude <= collisionVerticalDis.sqrMagnitude)
+            //距離ベクトルがある程度同じである場合は何もしない
+            if(Mathf.Approximately(surfaceVerticalDis.sqrMagnitude, collisionVerticalDis.sqrMagnitude))
             {
-                //めり込んでいない
                 return _vectorZero;
             }
-            //めり込んでいる
 
+            ////衝突地点の距離ベクトルが面までの距離ベクトル以上である
+            //if(surfaceVerticalDis.sqrMagnitude < collisionVerticalDis.sqrMagnitude)
+            //{
+            //    //めり込んでいないので、引き戻すようにくっつける
+            //    //空気抵抗分を考慮して反発力を算出
+            //    Vector3 pullForce = -collisionToSurface + (-collisionToSurface * physic.airResistance);
+            //    return pullForce;
+            //}
+            //めり込んでいるので、押し出すようにくっつける
             //空気抵抗分を考慮して反発力を算出
-            Vector3 returnForce = collisionToSurface + (collisionToSurface * physic.airResistance);
+            Vector3 pushForce = collisionToSurface + (collisionToSurface * physic.airResistance);
 
-            return returnForce;
+            return pushForce;
         }
 
         /// <summary>
-        /// <para>RepulsionForceByCollider</para>
-        /// <para>対象の力に反発力を付加します</para>
+        /// <para>VerticalForceByCollider</para>
+        /// <para>面に対し垂直方向の力を取得します</para>
         /// </summary>
         /// <param name="physic">対象の物質</param>
         /// <param name="otherPhysic">衝突情報</param>
         /// <returns>実際の力</returns>
-        public static Vector3 RepulsionForceByPhysicMaterials(PhysicData physic, OtherPhysicData otherPhysic)
+        public static Vector3 VerticalForceByPhysicMaterials(PhysicData physic, OtherPhysicData otherPhysic)
         {
             //Debug.Log("-------------------------------------------------------------------------");
             //返却用
@@ -112,14 +119,22 @@ namespace PhysicLibrary.Manager
             //垂直方向を取得
             Vector3 vertical = VerticalDirectionBySurface(otherPhysic);
             //現在の力の垂直方向に対しての力を取得
-            Vector3 verticalForce = GetTo.V3Projection(physic.force, vertical);
-            //Debug.Log("f:" + returnForce + "s:" + (verticalResistance + horizontalForce));
+            Vector3 verticalForce = GetTo.V3Projection(returnForce, vertical);
+            //Debug.Log("v:" + vertical + "f:" + verticalForce);
 
-            //垂直方向と現在の垂直力の方向が同じである
-            if (Mathf.Sign(vertical.x) == Mathf.Sign(verticalForce.x) && Mathf.Sign(vertical.y) == Mathf.Sign(verticalForce.y) && Mathf.Sign(vertical.z) == Mathf.Sign(verticalForce.z))
+            //垂直方向に対しての力は面に対して表側に働く力か（めり込む方向ではない）
+            bool isForceToVertical =
+                Mathf.Sign(vertical.x) == Mathf.Sign(verticalForce.x)
+                && Mathf.Sign(vertical.y) == Mathf.Sign(verticalForce.y)
+                && Mathf.Sign(vertical.z) == Mathf.Sign(verticalForce.z);
+            //垂直方向に対しての力はあるか
+            bool isExistVerticalForce = verticalForce != _vectorZero;
+
+            //表側に働く または 垂直に対しての力がない
+            if (isForceToVertical || !isExistVerticalForce)
             {
                 //反発しない
-                return returnForce;
+                return verticalForce;
             }
 
             //反発する
@@ -127,22 +142,23 @@ namespace PhysicLibrary.Manager
             //反発係数を算出
             float combineRep = GetTo.ValueCombine(myMaterial.bounciness, collisionMaterial.bounciness, myMaterial.bounceCombine);
             //反発力を算出
-            Vector3 repulsionForce = -(combineRep * GetTo.V3Projection(physic.force,vertical));
+            Vector3 repulsionForce = -(combineRep * verticalForce);
+            //Debug.Log("f:" + returnForce + "sr:" + verticalForce);
             //Debug.Log("Re" + repulsionForce);
             //反発力を考慮した物質にかかる力を算出
-            returnForce = AddRepulsionForce(returnForce, repulsionForce);
+            returnForce = repulsionForce;
 
             return returnForce;
         }
 
         /// <summary>
-        /// <para>FrictionForceByCollider</para>
-        /// <para>対象の力に摩擦力を付与します</para>
+        /// <para>HorizontalForceByCollider</para>
+        /// <para>面に対し水平方向の力を取得します</para>
         /// </summary>
         /// <param name="physic">対象の物質</param>
         /// <param name="otherPhysic">衝突情報</param>
         /// <returns>実際の力</returns>
-        public static Vector3 FrictionForceByPhysicMaterials(PhysicData physic, OtherPhysicData otherPhysic)
+        public static Vector3 HorizontalForceByPhysicMaterials(PhysicData physic, OtherPhysicData otherPhysic)
         {
             //Debug.Log("-------------------------------------------------------------------------");
             //返却用
@@ -160,7 +176,7 @@ namespace PhysicLibrary.Manager
             Vector3 horizontalForce = HorizontalForceBySurface(otherPhysic.collision.transform, vertical, physic.force);
             
             Debug.DrawLine(physic.colliderInfo.material.transform.position, physic.colliderInfo.material.transform.position + horizontalForce, Color.red);
-            Debug.Log("s:" + horizontalForce + "r:" + returnForce);
+            //Debug.Log("s:" + horizontalForce + "r:" + returnForce);
 
             //動摩擦係数を算出
             float combineDynamicDrug = GetTo.ValueCombine(myMaterial.dynamicDrug, collisionMaterial.dynamicDrug, myMaterial.drugCombine);
@@ -168,8 +184,8 @@ namespace PhysicLibrary.Manager
             float combineStaticDrug = GetTo.ValueCombine(myMaterial.staticDrug, collisionMaterial.staticDrug, myMaterial.drugCombine);
             //Debug.Log("v:" + vertical + verticalResistance + " :h" + horizontalForce + " | " + physic.force);
             //摩擦力を考慮した物質にかかる力を算出
-            returnForce = AddDrug(horizontalForce, verticalResistance, combineDynamicDrug, combineStaticDrug);
-            Debug.Log("s:" + horizontalForce + "r:" + returnForce);
+            returnForce = horizontalForce + AddDrug(horizontalForce, verticalResistance, combineDynamicDrug, combineStaticDrug);
+            //Debug.Log("s:" + horizontalForce + "r:" + returnForce);
 
             return returnForce;
         }

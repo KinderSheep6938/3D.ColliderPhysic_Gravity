@@ -51,6 +51,9 @@ public class OriginalCollider : MonoBehaviour, IColliderInfoAccessible
     #endregion
 
     #region プロパティ
+    //自身の頂点座標リスト
+    Vector3[] IColliderInfoAccessible.Edge { get => _colliderData.edgePos; }
+
     //自身の物理情報
     PhysicMaterials IColliderInfoAccessible.material { get => _physicMaterial; }
     #endregion
