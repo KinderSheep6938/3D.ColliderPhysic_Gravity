@@ -39,6 +39,8 @@ public class OriginalRigidBody : MonoBehaviour
     [SerializeField, Header("座標固定")]
     private Freeze _freezeStatus = Freeze.None;
 
+    //再帰処理初回処理判定
+    private bool _isOnce = true;
     //面の衝突判定
     private bool _onSurface = false;
     //重力加速度
@@ -51,8 +53,6 @@ public class OriginalRigidBody : MonoBehaviour
     private IColliderInfoAccessible _colliderAccess = default;
     //自身のTransform
     private Transform _transform = default;
-    //過去の衝突データ
-    private OtherPhysicData _oldCollision = default;
     #endregion
 
     #region プロパティ
@@ -162,11 +162,9 @@ public class OriginalRigidBody : MonoBehaviour
             return;
         }
 
-        //Debug.Log("col");
-        //最小重力加速度設定
-        //_minGravity = PhysicManager.Gravity(_physicData);
-        //_physicData.force += _minGravity;
-                Debug.Log("-----------------------------------------------------");
+        Debug.Log("-----------------------------------------------------");
+        //初回処理設定
+        _isOnce = true;
         //衝突情報を検索
         CheckCollisionData(_physicData.colliderInfo.material);
         //_physicData.force += _minGravity;
@@ -194,31 +192,42 @@ public class OriginalRigidBody : MonoBehaviour
         //登録されていない場合は処理しない
         if (!CollisionPhysicManager.CheckWaitContains(data))
         {
-            return;
-        }
-        OtherPhysicData use = CollisionPhysicManager.GetCollision(data);
-
-        Debug.Log("m" + use.velocity.sqrMagnitude + "f" + _physicData.force.sqrMagnitude + "Us" + use.point);
-        //衝突した情報を加味して、力を算出
-        _physicData.force = PhysicManager.ChangeForceByPhysicMaterials(_physicData, use);
-
-        //めり込んでいる
-        if (use.velocity.sqrMagnitude <= PERMISSION_MINMAGUNITYDE) 
-        {
-            //めり込み制御
-            Vector3 intrusion = PhysicManager.NoForceToCollision(_physicData, use);
-            Debug.Log("CollFor :" + intrusion);
-            //まだ登録されている
-            if (CollisionPhysicManager.CheckWaitContains(data))
+            //初回処理か
+            if (_isOnce)
             {
+                _isOnce = false;
+                //重力であたる物体を検査
+                _colliderAccess.CheckCollisionToInterpolate(_gravity, true);
                 //再起処理
                 CheckCollisionData(data);
             }
-            //めり込み防止力を設定
-            _physicData.force += intrusion;
             return;
-            
         }
+        //初回処理判定消去
+        _isOnce = false;
+
+        //使用する衝突データを取得
+        OtherPhysicData use = CollisionPhysicManager.GetCollision(data);
+        Debug.Log("m" + use.interpolate + "f" + _physicData.force.sqrMagnitude + "Us" + use.point);
+        Debug.Log(_physicData.force);
+        //摩擦力取得
+        Vector3 friction = PhysicManager.FrictionForceByPhysicMaterials(_physicData, use);
+        _physicData.force += friction;
+        Debug.Log("Fri" + friction);
+        //反発力取得
+        Vector3 repulsion = PhysicManager.RepulsionForceByPhysicMaterials(_physicData, use);
+        Debug.Log("Repu" + repulsion);
+        //実際の力に反映
+        _physicData.force = repulsion;
+        Debug.Log(_physicData.force);
+
+
+        //めり込み制御
+        Vector3 intrusion = PhysicManager.NoForceToCollision(_physicData, use);
+        Debug.Log("CollFor :" + intrusion);
+        //めり込み防止力を設定
+        _physicData.force += intrusion;
+        
 
         //まだ登録されている
         if (CollisionPhysicManager.CheckWaitContains(data))

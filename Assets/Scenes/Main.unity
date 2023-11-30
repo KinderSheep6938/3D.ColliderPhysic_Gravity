@@ -277,8 +277,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _updateStatus: 3
   _physicMaterial:
-    dynamicDrug: 0.18
-    staticDrug: 0.421
+    dynamicDrug: 0.115
+    staticDrug: 0.323
     bounciness: 0.01
     drugCombine: 0
     bounceCombine: 0
@@ -355,7 +355,7 @@ Transform:
   m_GameObject: {fileID: 161464879}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 4.3, y: 65.6, z: -4.4}
+  m_LocalPosition: {x: 31.1, y: 65.6, z: 42}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -495,7 +495,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6edb0c58bc0905c4a8241a4395d9becd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _speed: 5
+  _speed: 10
   _jumpPower: 2
 --- !u!114 &161464887
 MonoBehaviour:
@@ -1057,7 +1057,7 @@ MonoBehaviour:
   _physicMaterial:
     dynamicDrug: 0
     staticDrug: 0
-    bounciness: 0.248
+    bounciness: 0.01
     drugCombine: 0
     bounceCombine: 0
   _colliderData:
@@ -1500,7 +1500,7 @@ Transform:
   m_GameObject: {fileID: 1729217541}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: -0.106854066, w: 0.99427474}
-  m_LocalPosition: {x: -46.6, y: -16.5, z: 67.1}
+  m_LocalPosition: {x: -46.6, y: -9.2, z: 31.8}
   m_LocalScale: {x: 100, y: 50, z: 50}
   m_ConstrainProportionsScale: 0
   m_Children: []

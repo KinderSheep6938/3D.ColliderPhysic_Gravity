@@ -196,12 +196,6 @@ public class OriginalCollider : MonoBehaviour, IColliderInfoAccessible
     {
         Debug.DrawLine(_colliderData.position, _colliderData.position + velocity, Color.yellow);
 
-        //既に衝突判定がある場合
-        if (_onCollision)
-        {
-            return _onCollision;
-        }
-
         //補完変数に自身の情報を設定
         ColliderData interpolateCol = _colliderData;
         //頂点座標リストを参照渡しではなく、値渡しに変換
@@ -214,7 +208,7 @@ public class OriginalCollider : MonoBehaviour, IColliderInfoAccessible
         }
 
         //衝突判定を取得
-        _onCollision = ColliderManager.CheckCollision(interpolateCol,velocity, saveCollision);
+        _onCollision = ColliderManager.CheckCollision(interpolateCol, velocity, saveCollision);
 
         //衝突判定を返却
         return _onCollision;

@@ -204,12 +204,14 @@ namespace ColliderLibrary.Manager
         /// <param name="point">äeè’ìÀínì_</param>
         private static void SetCollisionData(PhysicMaterials myPhysic, PhysicMaterials[] collisionPhysic, Vector3[] point, Vector3 interpolate)
         {
-            
+            //ï‚äÆë¨ìxÇÕÇ†ÇÈÇ©
+            bool interpolateFlag = (interpolate != _vectorZero);
+
             //è’ìÀÇ™ÇPÇ¬ÇµÇ©Ç»Ç¢èÍçá
             if (collisionPhysic.Length == 1)
             {
                 //ìoò^
-                CollisionPhysicManager.SetCollision(myPhysic, collisionPhysic[0], point[0], interpolate);
+                CollisionPhysicManager.SetCollision(myPhysic, collisionPhysic[0], point[0], interpolateFlag);
                 return;
             }
             //ï°êîÇÃè’ìÀÇìoò^
@@ -217,7 +219,7 @@ namespace ColliderLibrary.Manager
             {
                 Debug.Log(collisionPhysic[i] + "[" + point[i] + "[" + interpolate);
                 //ìoò^
-                CollisionPhysicManager.SetCollision(myPhysic, collisionPhysic[i], point[i], interpolate);
+                CollisionPhysicManager.SetCollision(myPhysic, collisionPhysic[i], point[i], interpolateFlag);
                 Debug.Log("1<<");
             }
             return;
