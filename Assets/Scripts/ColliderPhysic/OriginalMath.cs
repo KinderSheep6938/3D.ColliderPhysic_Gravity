@@ -247,5 +247,4 @@ namespace OriginalMath
         }
         #endregion
     }
-
 }

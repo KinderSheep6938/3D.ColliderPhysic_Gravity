@@ -241,12 +241,13 @@ public class OriginalRigidBody : MonoBehaviour
     /// <returns>ŠÂ‹«‰e‹¿Œã‚Ì—Í</returns>
     private Vector3 ChangeForceByPhysic(PhysicData myPhysic, OtherPhysicData environment)
     {
+        Debug.Log(myPhysic.force);
         //–Ê‚É‘Î‚µ…•½•ûŒü‚Ì—Íæ“¾
         Vector3 horizontalForce = PhysicManager.HorizontalForceByPhysicMaterials(myPhysic, environment);
-        //Debug.Log("Hor" + horizontalForce);
+        Debug.Log("Hor" + horizontalForce);
         //–Ê‚É‘Î‚µ‚’¼•ûŒü‚Ì—Íæ“¾
         Vector3 verticalForce = PhysicManager.VerticalForceByPhysicMaterials(myPhysic, environment);
-        //Debug.Log("Repu" + verticalForce);
+        Debug.Log("Repu" + verticalForce);
         //‡¬
         Vector3 returnForce = horizontalForce + verticalForce;
 
@@ -254,8 +255,8 @@ public class OriginalRigidBody : MonoBehaviour
         if (verticalForce == _vectorZero)
         {
             //–Ê‚ÉÚ‚·‚é‚æ‚¤‚É—Í‚ğ‰Á‚¦‚é
-            Vector3 intrusion = PhysicManager.NoForceToCollision(_physicData, environment);
-            //Debug.Log("CollFor :" + intrusion);
+            Vector3 intrusion = PhysicManager.NoForceToCollision(myPhysic, environment);
+            Debug.Log("CollFor :" + intrusion);
 
             returnForce += intrusion;
         }
