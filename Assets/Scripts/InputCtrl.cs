@@ -17,7 +17,7 @@ public class InputCtrl : MonoBehaviour
 
     //ƒvƒŒƒCƒ„[‘€ì
     private Player _player = default;
-    //PlayerInput
+    //InputSystem
     private InputAction _move = default;
     #endregion
 

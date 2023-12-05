@@ -11,11 +11,6 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     #region 変数
-    //基礎ベクトル
-    private readonly Vector3 _vectorRight = Vector3.right;
-    private readonly Vector3 _vectorUp = Vector3.up;
-    private readonly Vector3 _vectorForward = Vector3.forward;
-
     [SerializeField, Header("移動速度")]
     private float _speed = 1f;
     [SerializeField, Header("跳躍力")]
@@ -40,7 +35,7 @@ public class Player : MonoBehaviour
     private void Awake()
     {
         //初期化
-        _transform = transform;
+        _transform = FindObjectOfType<CameraCtrl>().transform;
         _rigid = GetComponent<OriginalRigidBody>();
     }
 
@@ -67,7 +62,7 @@ public class Player : MonoBehaviour
     /// <param name="input">[Vector2]入力</param>
     public void Move(Vector2 input)
     {
-        Vector3 set = _vectorRight * input.x + _vectorForward * input.y;
+        Vector3 set = _transform.right * input.x + _transform.forward * input.y;
 
         //移動させる
         _rigid.AddForce(set * _speed * Time.deltaTime);
@@ -81,7 +76,7 @@ public class Player : MonoBehaviour
     public void Jump()
     {
         //移動させる
-        _rigid.AddForce(_vectorUp * _jumpPower);
+        _rigid.AddForce(_transform.up * _jumpPower);
         Debug.Log("jump");
     }
     #endregion

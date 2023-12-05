@@ -76,7 +76,7 @@ namespace PhysicLibrary.Manager
             Vector3 collisionVerticalDis = GetTo.V3Projection(physic.colliderInfo.Edge[otherPhysic.edgeId] - otherPhysic.collision.transform.position, surfaceVerticalDis);
             //衝突地点から面までの距離ベクトルを取得
             Vector3 collisionToSurface = surfaceVerticalDis - collisionVerticalDis;
-            Debug.Log(surfaceVerticalDis + ":" + collisionVerticalDis + ":" + collisionToSurface);
+            //Debug.Log(surfaceVerticalDis + ":" + collisionVerticalDis + ":" + collisionToSurface);
 
             //距離ベクトルがある程度同じである場合は何もしない
             //if(Mathf.Approximately(surfaceVerticalDis.sqrMagnitude, collisionVerticalDis.sqrMagnitude))
@@ -85,13 +85,13 @@ namespace PhysicLibrary.Manager
             //}
 
             //衝突地点の距離ベクトルが面までの距離ベクトル以上である
-            if (surfaceVerticalDis.sqrMagnitude < collisionVerticalDis.sqrMagnitude)
-            {
-                //めり込んでいないので、引き戻すようにくっつける
-                //空気抵抗分を考慮して反発力を算出
-                Vector3 pullForce = -collisionToSurface;
-                return pullForce;
-            }
+            //if (surfaceVerticalDis.sqrMagnitude < collisionVerticalDis.sqrMagnitude)
+            //{
+            //    //めり込んでいないので、引き戻すようにくっつける
+            //    //空気抵抗分を考慮して反発力を算出
+            //    Vector3 pullForce = -collisionToSurface;
+            //    return pullForce;
+            //}
             //めり込んでいるので、押し出すようにくっつける
             //空気抵抗分を考慮して反発力を算出
             Vector3 pushForce = collisionToSurface;
@@ -133,7 +133,7 @@ namespace PhysicLibrary.Manager
             //表側に働く または 垂直に対しての力がない
             if (isForceToVertical || !isExistVerticalForce)
             {
-                Debug.Log("noRepu" + vertical + ":" + verticalForce);
+                //Debug.Log("noRepu" + vertical + ":" + verticalForce);
                 //反発しない
                 return verticalForce;
             }
