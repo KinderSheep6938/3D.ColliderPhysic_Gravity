@@ -38,7 +38,6 @@ public class CameraCtrl : MonoBehaviour
     #endregion
 
     #region プロパティ
-
     #endregion
 
     #region メソッド
@@ -63,16 +62,14 @@ public class CameraCtrl : MonoBehaviour
     /// <summary>
     /// 更新処理
     /// </summary>
-    private void Update()
+    private void LateUpdate()
     {
         //カメラ移動
         OutputCamera();
-    }
+        Debug.DrawLine(transform.position, transform.position + transform.forward, Color.blue);
+        Debug.DrawLine(transform.position, transform.position + transform.right, Color.red);
+        Debug.DrawLine(transform.position, transform.position + transform.up, Color.green);
 
-    private void FixedUpdate()
-    {
-        //位置移動
-        PositionTracking();
     }
 
     /// <summary>
@@ -87,11 +84,14 @@ public class CameraCtrl : MonoBehaviour
         //移動量が規定値未満だったら処理しない
         if(track.sqrMagnitude < TRACK_PERMISSION)
         {
+            _horizontalObj.position = _playerObj.position;
             return;
         }
         
         //移動
-        _horizontalObj.Translate((track * TRACK_SPEED) * Time.fixedDeltaTime);
+        _horizontalObj.position += (track * TRACK_SPEED) * Time.deltaTime;
+
+
     }
 
     /// <summary>
@@ -131,12 +131,12 @@ public class CameraCtrl : MonoBehaviour
         //最大角度を超える
         if(CAMERA_MAXVERTICAL < verticalAngle)
         {
-            _verticalObj.eulerAngles = _cameraY * CAMERA_MAXVERTICAL;
+            _verticalObj.eulerAngles = _horizontalObj.eulerAngles + _cameraY * CAMERA_MAXVERTICAL;
         }
         //最小角度を下回る
         else if(verticalAngle < CAMERA_MINVERTICAL)
         {
-            _verticalObj.eulerAngles = _cameraY * CAMERA_MINVERTICAL;
+            _verticalObj.eulerAngles = _horizontalObj.eulerAngles + _cameraY * CAMERA_MINVERTICAL;
         }
     }
     #endregion

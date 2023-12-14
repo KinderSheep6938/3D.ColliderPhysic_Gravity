@@ -36,8 +36,10 @@ namespace PhysicLibrary.CollisionPhysic
         /// </summary>
         /// <param name="a"></param>
         /// <param name="b"></param>
+        /// <param name="edgeId">衝突頂点ID</param>
         /// <param name="point">衝突地点</param>
-        /// <param name="velocity">補完速度</param>
+        /// <param name="interpolate">補完</param>
+        /// <param name="time">記録時間</param>
         public PhysicCollision(PhysicMaterials a, PhysicMaterials b, int edgeId, Vector3 point, bool interpolate, float time)
         {
             this.physicA = a;
@@ -45,7 +47,7 @@ namespace PhysicLibrary.CollisionPhysic
             this.edgeId = edgeId;
             this.point = point;
             this.interpolate = interpolate;
-            this.saveLog = 0 + time;
+            this.saveLog = time;
         }
 
         /// <summary>
@@ -336,24 +338,36 @@ namespace PhysicLibrary.CollisionPhysic
             //ある程度経過してなお残っている衝突データを削除
             CheckTimeRemoveCollision();
 
+            //補完用
+            PhysicCollision save = default;
+            bool isSave = false;
             //記録されている衝突を確認
             foreach (PhysicCollision collision in _collisionData)
             {
                 //関与している衝突データである かつ まだ確認済みではない
                 if (collision.Contains(search) && !PhysicToCheckLog(collision, search))
                 {
-                    //使用するデータをまとめる
-                    OtherPhysicData returnData = new OtherPhysicData(collision.OtherPhysic(search), collision.edgeId, collision.point, collision.interpolate);
-                    //確認済みと設定する
-                    CheckIn(collision, collision.Which(search));
-                    //衝突データを削除検査
-                    CheckRemoveCollision(collision);
-                    //確認待ち記録を削除検査
-                    CheckRemoveLog(search);
-                    return returnData;
+                    //対象を補完
+                    save = collision;
+                    isSave = true;
+                    break;
                 }
                 //衝突データを削除検査
                 CheckRemoveCollision(collision);
+            }
+
+            //補完されている
+            if(isSave)
+            {
+                //使用するデータをまとめる
+                OtherPhysicData returnData = new OtherPhysicData(save.OtherPhysic(search), save.edgeId, save.point, save.interpolate);
+                //確認済みと設定する
+                CheckIn(save, save.Which(search));
+                //衝突データを削除検査
+                CheckRemoveCollision(save);
+                //確認待ち記録を削除検査
+                CheckRemoveLog(search);
+                return returnData;
             }
             //衝突記録を削除検査
             CheckRemoveLog(search);

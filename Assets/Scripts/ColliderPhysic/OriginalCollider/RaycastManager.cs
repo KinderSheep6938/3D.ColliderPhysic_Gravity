@@ -53,7 +53,7 @@ namespace ColliderLibrary.Manager
             Vector3 point = _vectorZero;
 
             //一番近い線が当たるColliderを取得
-            foreach(ColliderData collider in ColliderDataManager.ColliderInWorld)
+            foreach(ColliderData collider in ColliderDataManager.GetColliderToWorld())
             {
                 //Raycastの始点と終点を結ぶ線に重ならない
                 if (!CollisionCheck.CheckLineOverlapByCollider(origin, lineEnd, collider.physic.transform))

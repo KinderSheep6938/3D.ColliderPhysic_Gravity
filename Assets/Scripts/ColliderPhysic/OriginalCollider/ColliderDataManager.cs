@@ -20,7 +20,7 @@ namespace ColliderLibrary.DataManager
         #endregion
 
         #region プロパティ
-        public static ref List<ColliderData> ColliderInWorld { get => ref _collidersInWorld; }
+
         #endregion
 
         #region メソッド
@@ -51,6 +51,24 @@ namespace ColliderLibrary.DataManager
         {
             //共有リストから削除
             _collidersInWorld.Remove(target);
+        }
+
+        public static ref List<ColliderData> GetColliderToWorld()
+        {
+            //余分なデータを削除する
+            for(int i = 0;i < _collidersInWorld.Count;i++)
+            { 
+                //検査対象が削除されている
+                if(_collidersInWorld[i].physic.transform == default)
+                {
+                    //削除する
+                    _collidersInWorld.RemoveAt(i);
+                    i--;
+                }
+            }
+
+            //返却
+            return ref _collidersInWorld;
         }
         #endregion
     }

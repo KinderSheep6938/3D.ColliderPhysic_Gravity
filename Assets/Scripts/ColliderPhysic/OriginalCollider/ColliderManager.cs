@@ -48,8 +48,14 @@ namespace ColliderLibrary.Manager
             savePoint.Clear();
 
             //共有リストから全Collider情報を取得し、衝突検査を行います
-            foreach (ColliderData target in ColliderDataManager.ColliderInWorld)
+            foreach (ColliderData target in ColliderDataManager.GetColliderToWorld())
             {
+                //検査対象が削除されている
+                if(target.physic.transform == default)
+                {
+                    continue;
+                }
+
                 //検査対象が 自身 である
                 if (target.physic.transform == collider.physic.transform)
                 {

@@ -252,5 +252,14 @@ public class OriginalCollider : MonoBehaviour, IColliderInfoAccessible
         //Collider情報を管理マネージャーから削除
         ColliderDataManager.RemoveColliderToWorld(_colliderData);
     }
+
+    /// <summary>
+    /// 削除後処理
+    /// </summary>
+    private void OnDestroy()
+    {
+        //Collider情報を管理マネージャーから削除
+        ColliderDataManager.RemoveColliderToWorld(_colliderData);
+    }
     #endregion
 }

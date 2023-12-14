@@ -69,6 +69,12 @@ namespace PhysicLibrary.Manager
         /// <returns>めり込み制御用の力</returns>
         public static Vector3 NoForceToCollision(PhysicData physic, OtherPhysicData otherPhysic)
         {
+            //データ検査
+            if (!CheckExistData(otherPhysic.collision))
+            {
+                return _vectorZero;
+            }
+
             //Debug.Log(physic.colliderInfo.material.transform + ":" + otherPhysic.collision.transform);
             //垂直方向の面までの距離ベクトル
             Vector3 surfaceVerticalDis = VerticalDirectionBySurface(otherPhysic,otherPhysic.collision.transform.lossyScale);
@@ -108,6 +114,12 @@ namespace PhysicLibrary.Manager
         /// <returns>実際の力</returns>
         public static Vector3 VerticalForceByPhysicMaterials(PhysicData physic, OtherPhysicData otherPhysic)
         {
+            //データ検査
+            if (!CheckExistData(otherPhysic.collision))
+            {
+                return _vectorZero;
+            }
+
             //Debug.Log("-------------------------------------------------------------------------");
             //返却用
             Vector3 returnForce = physic.force;
@@ -161,6 +173,12 @@ namespace PhysicLibrary.Manager
         /// <returns>実際の力</returns>
         public static Vector3 HorizontalForceByPhysicMaterials(PhysicData physic, OtherPhysicData otherPhysic)
         {
+            //データ検査
+            if (!CheckExistData(otherPhysic.collision))
+            {
+                return _vectorZero;
+            }
+
             //Debug.Log("-------------------------------------------------------------------------");
             //返却用
             Vector3 returnForce = physic.force;
@@ -418,6 +436,21 @@ namespace PhysicLibrary.Manager
             return sumHorizontal;
         }
 
+        /// <summary>
+        /// <para>CheckExistData</para>
+        /// <para>データがあるか検査します</para>
+        /// </summary>
+        /// <param name="check"></param>
+        /// <returns></returns>
+        private static bool CheckExistData(PhysicMaterials check)
+        {
+            if(check.transform == default)
+            {
+                return false;
+            }
+
+            return true;
+        }
         #endregion 
     }
 }
