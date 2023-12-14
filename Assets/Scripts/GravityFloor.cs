@@ -7,16 +7,20 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using PhysicLibrary.Manager;
 
-public class UpFloor : MonoBehaviour
+public class GravityFloor : MonoBehaviour
 {
     #region 変数
     //引力距離
     private const float GRAVITY_DISTANCE = 5f;
+    //重力反転角度
+    private const float GRAVITY_ANGLE = 180f;
     //オブジェクト
     private const float OBJECT_RANGE = 0.5f;
     //基礎ベクトル
-    private readonly Vector3 _vectorUp = Vector3.up;
+    private readonly Vector3 _vectorZero = Vector3.zero;
+    private readonly Vector3 _vectorForward = Vector3.forward;
 
     //自身のTransform
     private Transform _transform = default;
@@ -58,7 +62,7 @@ public class UpFloor : MonoBehaviour
     /// </summary>
     private void Update()
     {
-
+        SetGravity();
     }
 
 
@@ -74,24 +78,30 @@ public class UpFloor : MonoBehaviour
         //X軸の範囲内
         bool rangeX = (-OBJECT_RANGE <= localPos.x && localPos.x <= OBJECT_RANGE);
         bool rangeZ = (-OBJECT_RANGE <= localPos.z && localPos.z <= OBJECT_RANGE);
+
         //横幅の範囲外である
-        if (!rangeX && !rangeZ)
+        if (!rangeX || !rangeZ)
         {
             return;
         }
+        Debug.Log("in:" + localPos);
 
         //引き寄せ距離をローカル化する
         float localGravityDistance = GRAVITY_DISTANCE / _transform.localScale.y;
         //上に乗っている かつ 引き寄せ可能距離である
         if (OBJECT_RANGE <= localPos.y && localPos.y <= OBJECT_RANGE + localGravityDistance)
         {
-
+            Debug.Log("up");
+            _playerRigid.MyGravity = _transform.up * PhysicManager.CommonGravity.y;
+            _player.eulerAngles = _vectorZero;
         }
 
-        //上に乗っている かつ 引き寄せ可能距離である
+        //下に乗っている かつ 引き寄せ可能距離である
         if (localPos.y <= -OBJECT_RANGE && -OBJECT_RANGE - localGravityDistance <= localPos.y)
         {
-
+            Debug.Log("down");
+            _playerRigid.MyGravity = -_transform.up * PhysicManager.CommonGravity.y;
+            _player.eulerAngles = _vectorForward * GRAVITY_ANGLE;
         }
     }
     #endregion

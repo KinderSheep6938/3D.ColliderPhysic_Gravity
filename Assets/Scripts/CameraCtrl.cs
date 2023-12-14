@@ -15,6 +15,8 @@ public class CameraCtrl : MonoBehaviour
     //縦軸の最大・最小角度
     private const float CAMERA_MAXVERTICAL = 60f;
     private const float CAMERA_MINVERTICAL = 10f;
+    //カメラ距離
+    private const float CAMERA_POS = -25f;
 
     //最小移動量
     private const float TRACK_PERMISSION = 0.0001f;
@@ -25,6 +27,9 @@ public class CameraCtrl : MonoBehaviour
     //基礎ベクトル
     private readonly Vector3 _cameraX = Vector3.up;     //カメラ横
     private readonly Vector3 _cameraY = Vector3.right;  //カメラ縦
+    private readonly Vector3 _cameraHorizontal = Vector3.up + Vector3.right;
+    private readonly Vector3 _cameraGravity = Vector3.forward; //カメラ反転
+
 
     //InputSystem
     private InputAction _mouseMove = default;
@@ -35,6 +40,9 @@ public class CameraCtrl : MonoBehaviour
     //プレイヤーオブジェ
     [SerializeField]
     private Transform _playerObj = default;
+    //カメラオブジェ
+    [SerializeField]
+    private Transform _cameraObj = default;
     #endregion
 
     #region プロパティ
@@ -103,7 +111,7 @@ public class CameraCtrl : MonoBehaviour
         //カメラ移動入力値
         Vector2 input = _mouseMove.ReadValue<Vector2>();
 
-        Debug.Log(input);
+        //Debug.Log(input);
 
         //回転速度倍増
         input *= ROTATE_SPEED;
@@ -117,6 +125,8 @@ public class CameraCtrl : MonoBehaviour
 
         //縦軸のカメラ角度を制限
         PermissionVertical();
+
+        CameraTrack();
     }
 
     /// <summary>
@@ -126,7 +136,7 @@ public class CameraCtrl : MonoBehaviour
     private void PermissionVertical()
     {
         //現在のカメラの縦軸角度を取得
-        float verticalAngle = _verticalObj.eulerAngles.x;
+        float verticalAngle = _verticalObj.localEulerAngles.x;
         
         //最大角度を超える
         if(CAMERA_MAXVERTICAL < verticalAngle)
@@ -138,6 +148,27 @@ public class CameraCtrl : MonoBehaviour
         {
             _verticalObj.eulerAngles = _horizontalObj.eulerAngles + _cameraY * CAMERA_MINVERTICAL;
         }
+    }
+
+    /// <summary>
+    /// <para>CameraTrack</para>
+    /// <para>カメラをトラックさせます</para>
+    /// </summary>
+    private void CameraTrack()
+    {
+        //残り距離を算出
+        Vector3 track = _verticalObj.position + _verticalObj.forward * CAMERA_POS - _cameraObj.position;
+
+        Debug.DrawLine(_verticalObj.position, _verticalObj.position + _verticalObj.forward * CAMERA_POS);
+        //カメラ位置を調整
+        _cameraObj.position += track * TRACK_SPEED * Time.deltaTime;
+        //カメラ距離が制限以下なら、位置を固定
+        if(track.sqrMagnitude <= TRACK_PERMISSION)
+        {
+            _cameraObj.position = _verticalObj.position + _verticalObj.forward * CAMERA_POS;
+        }
+        //カメラの視点を設定
+        _cameraObj.LookAt(_playerObj);
     }
     #endregion
 }

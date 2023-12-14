@@ -59,8 +59,8 @@ public class OriginalRigidBody : MonoBehaviour
     #endregion
 
     #region プロパティ
-    //現在の速度
-    public Vector3 Velocity { get => _physicData.velocity; }
+    //重力
+    public Vector3 MyGravity { set => _physicData.gravity = value; }
     #endregion
 
     #region メソッド

@@ -18,8 +18,6 @@ namespace PhysicLibrary.Manager
     public class PhysicManager
     {
         #region 変数
-        //めり込み反発倍率
-        private const float REPULESSION_RATIO = 1.02f;
         //重力
         private static readonly Vector3 _gravityScale = new(0f, -9.81f, 0f);
         //基礎ベクトル
