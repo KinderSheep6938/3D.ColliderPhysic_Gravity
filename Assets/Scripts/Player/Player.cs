@@ -11,12 +11,20 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     #region 変数
+    //プレイヤー通常向き
+    private Vector3 DOWNGRAVITY = new Vector3(0, 0, 0);
+    //プレイヤー反転向き
+    private Vector3 UPGRAVITY = new Vector3(0, 0, 180f);
+
+
     [SerializeField, Header("移動速度")]
     private float _speed = 1f;
     [SerializeField, Header("跳躍力")]
     private float _jumpPower = 1f;
 
-
+   
+    //カメラのTransform
+    private Transform _cameraObj = default;
     //自身のTransform
     private Transform _transform = default;
     //自身のRigidBody
@@ -35,7 +43,8 @@ public class Player : MonoBehaviour
     private void Awake()
     {
         //初期化
-        _transform = FindObjectOfType<CameraCtrl>().transform;
+        _cameraObj = FindObjectOfType<CameraCtrl>().transform;
+        _transform = transform;
         _rigid = GetComponent<OriginalRigidBody>();
     }
 
@@ -52,7 +61,7 @@ public class Player : MonoBehaviour
     /// </summary>
     private void Update()
     {
-        
+
     }
 
     /// <summary>
@@ -62,10 +71,18 @@ public class Player : MonoBehaviour
     /// <param name="input">[Vector2]入力</param>
     public void Move(Vector2 input)
     {
-        Vector3 set = _transform.right * input.x + _transform.forward * input.y;
+        if(input.sqrMagnitude == 0)
+        {
+            return;
+        }
 
-        //移動させる
+        //入力方向
+        Vector3 set = _cameraObj.right * input.x + _cameraObj.forward * -input.y;
+
+        //移動実行
         _rigid.AddForce(set * _speed * Time.deltaTime);
+
+        _transform.LookAt(_transform.position + set);
         //Debug.Log(input);
     }
 
@@ -76,7 +93,7 @@ public class Player : MonoBehaviour
     public void Jump()
     {
         //移動させる
-        _rigid.AddForce(_transform.up * _jumpPower);
+        _rigid.MyGravity = -_rigid.MyGravity;
         Debug.Log("jump");
     }
     #endregion

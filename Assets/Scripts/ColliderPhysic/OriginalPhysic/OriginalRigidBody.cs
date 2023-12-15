@@ -60,7 +60,7 @@ public class OriginalRigidBody : MonoBehaviour
 
     #region プロパティ
     //重力
-    public Vector3 MyGravity { set => _physicData.gravity = value; }
+    public Vector3 MyGravity { get => _physicData.gravity; set => _physicData.gravity = value; }
     #endregion
 
     #region メソッド

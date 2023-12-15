@@ -13,7 +13,7 @@ public class GravityFloor : MonoBehaviour
 {
     #region 変数
     //引力距離
-    private const float GRAVITY_DISTANCE = 5f;
+    private const float GRAVITY_DISTANCE = 10f;
     //重力反転角度
     private const float GRAVITY_ANGLE = 180f;
     //オブジェクト
@@ -103,6 +103,9 @@ public class GravityFloor : MonoBehaviour
             _playerRigid.MyGravity = -_transform.up * PhysicManager.CommonGravity.y;
             _player.eulerAngles = _vectorForward * GRAVITY_ANGLE;
         }
+
+        Debug.DrawLine(_transform.position, _transform.position + _transform.up * (_transform.localScale.y / 2 + GRAVITY_DISTANCE),Color.white);
+        Debug.DrawLine(_transform.position, _transform.position + -_transform.up * (_transform.localScale.y / 2 + GRAVITY_DISTANCE),Color.black);
     }
     #endregion
 }

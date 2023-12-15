@@ -30,8 +30,6 @@ public class OriginalCollider : MonoBehaviour, IColliderInfoAccessible
 
     //自身のTransform
     private Transform _transform = default;
-    //自身のRenderer
-    private MeshRenderer _renderer = default;
 
     //自身の物理挙動情報
     [SerializeField, Header("物理挙動情報")]
@@ -43,11 +41,6 @@ public class OriginalCollider : MonoBehaviour, IColliderInfoAccessible
     [SerializeField, Header("衝突情報")]
     private bool _onCollision = false;
 
-    //衝突マテリアル
-    [SerializeField]
-    private Material _normal = default;
-    [SerializeField]
-    private Material _collision = default;
     #endregion
 
     #region プロパティ
@@ -56,6 +49,9 @@ public class OriginalCollider : MonoBehaviour, IColliderInfoAccessible
 
     //自身の物理情報
     PhysicMaterials IColliderInfoAccessible.material { get => _physicMaterial; }
+
+    //衝突情報
+    public bool collision { get => _onCollision; }
     #endregion
 
     #region メソッド
@@ -67,7 +63,6 @@ public class OriginalCollider : MonoBehaviour, IColliderInfoAccessible
         //初期化
         _transform = transform;
         _transform.hasChanged = false;
-        _renderer = _transform.GetComponent<MeshRenderer>();
 
         //Physic情報に入力値を設定
         _physicMaterial = new(
@@ -145,16 +140,6 @@ public class OriginalCollider : MonoBehaviour, IColliderInfoAccessible
     /// </summary>
     private void CheckColliderUpdate()
     {
-        //デバッグ用見た目変更
-        if (_onCollision)
-        {
-            _renderer.material = _collision;
-        }
-        else
-        {
-            _renderer.material = _normal;
-        }
-
         //今までに衝突があったか
         _onCollision = CollisionPhysicManager.CheckWaitContains(_physicMaterial);
 

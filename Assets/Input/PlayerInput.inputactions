@@ -200,15 +200,59 @@
                     "isPartOfComposite": false
                 },
                 {
-                    "name": "",
-                    "id": "b0586974-49cd-4850-b9ce-fa630ae2fc4e",
-                    "path": "<Mouse>/delta",
+                    "name": "Shift Key",
+                    "id": "532ed310-47ae-41f6-9576-86c01ae019e4",
+                    "path": "2DVector",
                     "interactions": "",
-                    "processors": "ScaleVector2",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CameraMove",
+                    "isComposite": true,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "up",
+                    "id": "b64b8986-df7b-4f41-89fb-e878c10ea814",
+                    "path": "",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CameraMove",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "down",
+                    "id": "d433ae8c-77b3-49b3-8fa6-f20806e87709",
+                    "path": "",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CameraMove",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "left",
+                    "id": "5eb7d1c3-a06f-4a2f-b08b-974a405a220e",
+                    "path": "<Keyboard>/q",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "CameraMove",
+                    "isComposite": false,
+                    "isPartOfComposite": true
+                },
+                {
+                    "name": "right",
+                    "id": "e89ee119-760a-4e81-91dd-9f431cd9db8e",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
                     "groups": "Keyboard&Mouse",
                     "action": "CameraMove",
                     "isComposite": false,
-                    "isPartOfComposite": false
+                    "isPartOfComposite": true
                 }
             ]
         },
