@@ -127,7 +127,7 @@ public class OriginalRigidBody : MonoBehaviour
         _gravity = PhysicManager.Gravity(_physicData);
 
         //d—Í‚É‚æ‚Á‚ÄÕ“Ë‚·‚é
-        if (_colliderAccess.CheckCollisionToInterpolate(_gravity))
+        if (_colliderAccess.CheckCollisionToInterpolate(_gravity, true))
         {
             //–ÊÕ“Ë”»’è‚ğİ’è
             _onSurface = true;
@@ -169,7 +169,7 @@ public class OriginalRigidBody : MonoBehaviour
         //‰‰ñˆ—İ’è
         _isOnce = true;
         //Õ“Ëî•ñ‚ğŒŸõ
-        CheckCollisionData(_physicData.colliderInfo.material);
+        CheckCollisionData(_physicData.colliderInfo.Material);
         //_physicData.force += _minGravity;
 
         //”½”­Œã‚Ì—Í‚ªÅ’á’lˆÈ‰º‚Å‚ ‚ê‚Î•¨¿‚É‚©‚©‚é—Í‚ğÁ‹‚·‚é

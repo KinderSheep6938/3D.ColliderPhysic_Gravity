@@ -16,7 +16,7 @@ public interface IColliderInfoAccessible
     public Vector3[] Edge { get; }
 
     //•¨—‹““®î•ñ
-    public PhysicMaterials material { get; }
+    public PhysicMaterials Material { get; }
     #endregion
 
     #region ƒƒ\ƒbƒh

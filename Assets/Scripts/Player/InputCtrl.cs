@@ -92,7 +92,7 @@ public class InputCtrl : MonoBehaviour
         if (context.performed)
         {
             //ƒvƒŒƒCƒ„[’µ–ô
-            _player.Jump();
+            _player.ChangeGravity();
         }
     }
     #endregion

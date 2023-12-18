@@ -11,17 +11,8 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     #region 変数
-    //プレイヤー通常向き
-    private Vector3 DOWNGRAVITY = new Vector3(0, 0, 0);
-    //プレイヤー反転向き
-    private Vector3 UPGRAVITY = new Vector3(0, 0, 180f);
-
-
     [SerializeField, Header("移動速度")]
     private float _speed = 1f;
-    [SerializeField, Header("跳躍力")]
-    private float _jumpPower = 1f;
-
    
     //カメラのTransform
     private Transform _cameraObj = default;
@@ -87,14 +78,14 @@ public class Player : MonoBehaviour
     }
 
     /// <summary>
-    /// <para>Jump</para>
-    /// <para>跳躍を行います</para>
+    /// <para>ChangeGravity</para>
+    /// <para>重力を切り替えます</para>
     /// </summary>
-    public void Jump()
+    public void ChangeGravity()
     {
         //移動させる
         _rigid.MyGravity = -_rigid.MyGravity;
-        Debug.Log("jump");
+        Debug.Log("Change");
     }
     #endregion
 }

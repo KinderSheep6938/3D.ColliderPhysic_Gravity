@@ -48,10 +48,10 @@ public class OriginalCollider : MonoBehaviour, IColliderInfoAccessible
     Vector3[] IColliderInfoAccessible.Edge { get => _colliderData.edgePos; }
 
     //自身の物理情報
-    PhysicMaterials IColliderInfoAccessible.material { get => _physicMaterial; }
+    PhysicMaterials IColliderInfoAccessible.Material { get => _physicMaterial; }
 
     //衝突情報
-    public bool collision { get => _onCollision; }
+    public bool Collision { get => _onCollision; }
     #endregion
 
     #region メソッド

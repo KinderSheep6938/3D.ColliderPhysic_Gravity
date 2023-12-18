@@ -68,7 +68,7 @@ namespace PhysicLibrary.DataManager
             }
 
             //Œ©‚Â‚©‚ç‚È‚¢ê‡‚ÍŒvZˆ—ŠÈ—ª‰»‚Ì‚½‚ßA©g‚ÌPhysicî•ñ‚ğ•Ô‹p‚·‚é
-            return myData.colliderInfo.material;
+            return myData.colliderInfo.Material;
         }
         #endregion
 

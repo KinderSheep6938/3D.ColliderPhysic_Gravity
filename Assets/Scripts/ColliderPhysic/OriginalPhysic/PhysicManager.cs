@@ -122,7 +122,7 @@ namespace PhysicLibrary.Manager
             //•Ô‹p—p
             Vector3 returnForce = physic.force;
             //©g‚Ì•¨—‹““®î•ñ‚ğæ“¾
-            PhysicMaterials myMaterial = physic.colliderInfo.material;
+            PhysicMaterials myMaterial = physic.colliderInfo.Material;
             //Õ“Ëæ‚Ì•¨—‹““®î•ñ‚ğæ“¾
             PhysicMaterials collisionMaterial = otherPhysic.collision;
 
@@ -181,7 +181,7 @@ namespace PhysicLibrary.Manager
             //•Ô‹p—p
             Vector3 returnForce = physic.force;
             //©g‚Ì•¨—‹““®î•ñ‚ğæ“¾
-            PhysicMaterials myMaterial = physic.colliderInfo.material;
+            PhysicMaterials myMaterial = physic.colliderInfo.Material;
             //Õ“Ëæ‚Ì•¨—‹““®î•ñ‚ğæ“¾
             PhysicMaterials collisionMaterial = otherPhysic.collision;
 
@@ -192,7 +192,7 @@ namespace PhysicLibrary.Manager
             //…•½‚É“­‚­—Í‚ğæ“¾
             Vector3 horizontalForce = HorizontalForceBySurface(otherPhysic.collision.transform, vertical, physic.force);
             
-            Debug.DrawLine(physic.colliderInfo.material.transform.position, physic.colliderInfo.material.transform.position + horizontalForce, Color.red);
+            Debug.DrawLine(physic.colliderInfo.Material.transform.position, physic.colliderInfo.Material.transform.position + horizontalForce, Color.red);
             //Debug.Log("s:" + horizontalForce + "r:" + returnForce);
 
             //“®–€CŒW”‚ğZo
