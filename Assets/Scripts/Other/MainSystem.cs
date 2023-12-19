@@ -111,5 +111,17 @@ public class MainSystem : MonoBehaviour, IRetryble
         _sceneAnim.SetBool("onFadeOut", false);
         _sceneAnim.SetBool("onFadeIn", true);
     }
+
+    /// <summary>
+    /// <para>NextStage</para>
+    /// <para>次のステージへ進行します</para>
+    /// </summary>
+    public void NextStage()
+    {
+        //現在のシーンを取得
+        Scene nowScene = SceneManager.GetActiveScene();
+
+        
+    }
     #endregion
 }

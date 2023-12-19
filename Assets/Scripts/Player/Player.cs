@@ -13,6 +13,10 @@ public class Player : MonoBehaviour
     #region 変数
     [SerializeField, Header("移動速度")]
     private float _speed = 1f;
+
+    //重力反転可能
+    [SerializeField]
+    private bool _canChange = true;
    
     //カメラのTransform
     private Transform _cameraObj = default;
@@ -24,7 +28,8 @@ public class Player : MonoBehaviour
     #endregion
 
     #region プロパティ
-
+    //重力切り替え設定
+    public bool CanChange { set => _canChange = value; }
     #endregion
 
     #region メソッド
@@ -83,9 +88,15 @@ public class Player : MonoBehaviour
     /// </summary>
     public void ChangeGravity()
     {
-        //移動させる
-        _rigid.MyGravity = -_rigid.MyGravity;
-        Debug.Log("Change");
+        //切り替え可能である
+        if (_canChange)
+        {
+            //重力反転する
+            _rigid.MyGravity = -_rigid.MyGravity;
+            _canChange = false;
+            Debug.Log("Change");
+        }
+
     }
     #endregion
 }
