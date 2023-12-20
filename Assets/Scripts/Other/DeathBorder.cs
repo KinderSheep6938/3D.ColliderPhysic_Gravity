@@ -108,7 +108,7 @@ public class DeathBorder : MonoBehaviour
         //プレイヤーの現在高度
         if(_player != default)
         {
-            Gizmos.DrawSphere(_vectorUp * _player.position.y, 1);
+            Gizmos.DrawSphere(_vectorUp * _player.position.y + nowPos - _vectorUp * nowPos.y, 1);
         }
     }
     #endregion

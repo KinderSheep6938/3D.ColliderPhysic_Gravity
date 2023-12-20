@@ -44,7 +44,7 @@ public class MainSystem : MonoBehaviour, IRetryble
         //シーン切り替え後に処理を実行
         SceneManager.activeSceneChanged += ActiveSceneChanged;
 
-        SceneManager.LoadScene("Main");
+        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
     }
 
     /// <summary>
@@ -69,7 +69,7 @@ public class MainSystem : MonoBehaviour, IRetryble
     /// </summary>
     /// <param name="loadScene">次のシーン</param>
     /// <returns></returns>
-    private IEnumerator FadeOutWait(Scene loadScene )
+    private IEnumerator FadeOutWait(Scene loadScene)
     {
         //アニメーション制御
         _sceneAnim.SetBool("onFadeOut", true);
@@ -118,10 +118,17 @@ public class MainSystem : MonoBehaviour, IRetryble
     /// </summary>
     public void NextStage()
     {
-        //現在のシーンを取得
-        Scene nowScene = SceneManager.GetActiveScene();
+        //プレイヤー操作を不可に
+        FindObjectOfType<Player>().enabled = false;
 
-        
+        //現在のシーンのbuildIndexを取得
+        int nowIndex = SceneManager.GetActiveScene().buildIndex;
+        //次のシーンを取得
+        Scene next = SceneManager.GetSceneByBuildIndex(nowIndex++);
+
+        //コルーチンで次のシーンをロード
+        StartCoroutine(FadeOutWait(next));
+
     }
     #endregion
 }

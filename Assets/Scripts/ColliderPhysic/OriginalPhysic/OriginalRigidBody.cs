@@ -338,5 +338,17 @@ public class OriginalRigidBody : MonoBehaviour
         //—Í‚ğ‰ÁZ
         _physicData.force += add;
     }
+
+    /// <summary>
+    /// <para>ResetForce</para>
+    /// <para>•¨‘Ì‚É‚©‚©‚é—Í‚ğíœ‚µ‚Ü‚·</para>
+    /// </summary>
+    public void ResetForce()
+    {
+        //—Í‚ğ‰Šú‰»
+        _physicData.force = _vectorZero;
+        //‘¬“x‚ğ‰Šú‰»
+        _physicData.velocity = _vectorZero;
+    }
     #endregion
 }

@@ -1,5 +1,5 @@
 /// -----------------------------------------------------------------
-/// DeathFloor.cs
+/// DeathObj.cs
 /// 
 /// ì¬“úF2023/12/18
 /// ì¬ÒFShizuku
@@ -8,7 +8,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DeathFloor : MonoBehaviour
+public class DeathObj : MonoBehaviour
 {
     #region •Ï”
     //ˆê“xˆ—”»’è

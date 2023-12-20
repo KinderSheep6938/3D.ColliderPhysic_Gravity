@@ -17,6 +17,8 @@ public class Player : MonoBehaviour
     //重力反転可能
     [SerializeField]
     private bool _canChange = true;
+    //プレイヤーの操作可能フラグ
+    private bool _canInput = true;
    
     //カメラのTransform
     private Transform _cameraObj = default;
@@ -30,6 +32,8 @@ public class Player : MonoBehaviour
     #region プロパティ
     //重力切り替え設定
     public bool CanChange { set => _canChange = value; }
+    //操作不可能設定
+    public bool SetStopInput { set => _canInput = value; }
     #endregion
 
     #region メソッド
@@ -67,7 +71,8 @@ public class Player : MonoBehaviour
     /// <param name="input">[Vector2]入力</param>
     public void Move(Vector2 input)
     {
-        if(input.sqrMagnitude == 0)
+        //操作不可能である または 切り替え不可能である
+        if (!_canInput || !_canChange)
         {
             return;
         }
@@ -88,11 +93,18 @@ public class Player : MonoBehaviour
     /// </summary>
     public void ChangeGravity()
     {
+        //操作不可能である
+        if (!_canInput)
+        {
+            return;
+        }
+
         //切り替え可能である
         if (_canChange)
         {
             //重力反転する
             _rigid.MyGravity = -_rigid.MyGravity;
+            _rigid.ResetForce();
             _canChange = false;
             Debug.Log("Change");
         }
