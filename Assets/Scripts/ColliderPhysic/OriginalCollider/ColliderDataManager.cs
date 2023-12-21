@@ -7,6 +7,7 @@
 namespace ColliderLibrary.DataManager
 {
     using System.Collections.Generic;
+    using UnityEngine;
 
     /// <summary>
     /// <para>ColliderDataManager</para>
@@ -29,17 +30,18 @@ namespace ColliderLibrary.DataManager
         /// <para>対象のCollider情報を共有リストに設定します</para>
         /// </summary>
         /// <param name="target">Collider情報</param>
-        public static void SetColliderToWorld(ColliderData target)
+        public static void SetColliderToWorld(ref ColliderData target)
         {
             //既に格納されているか
             if (_collidersInWorld.Contains(target))
             {
-                //格納せず終了
-                return;
+                //既にあるデータを削除
+                RemoveColliderToWorld(target);
             }
 
             //格納
             _collidersInWorld.Add(target);
+
         }
 
         /// <summary>
@@ -53,6 +55,11 @@ namespace ColliderLibrary.DataManager
             _collidersInWorld.Remove(target);
         }
 
+        /// <summary>
+        /// <para>GetColliderToWorld</para>
+        /// <para>使用可能な保存されている全Colliderを返却します</para>
+        /// </summary>
+        /// <returns>全Collider</returns>
         public static ref List<ColliderData> GetColliderToWorld()
         {
             //余分なデータを削除する
@@ -62,7 +69,7 @@ namespace ColliderLibrary.DataManager
                 if(_collidersInWorld[i].physic.transform == default)
                 {
                     //削除する
-                    _collidersInWorld.RemoveAt(i);
+                    RemoveColliderToWorld(_collidersInWorld[i]);
                     i--;
                 }
             }

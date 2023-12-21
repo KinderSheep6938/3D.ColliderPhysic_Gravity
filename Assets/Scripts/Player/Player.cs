@@ -7,18 +7,29 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using OriginalMath;
+using ColliderLibrary.DataManager;
+using ColliderLibrary;
 
 public class Player : MonoBehaviour
 {
     #region 変数
+    //垂直な力の最小制限量
+    private const float PERMISSION_VERTICAL_MINMAGNITUDE = 1f;
+
+    //基礎ベクトル
+    private readonly Vector3 _vectorUp = Vector3.up;
+
     [SerializeField, Header("移動速度")]
     private float _speed = 1f;
-
     //重力反転可能
     [SerializeField]
-    private bool _canChange = true;
+    private int _onFloorCnt = 0;
+
     //プレイヤーの操作可能フラグ
     private bool _canInput = true;
+    //一度処理制御
+    private bool _isOnce = false;
    
     //カメラのTransform
     private Transform _cameraObj = default;
@@ -31,7 +42,7 @@ public class Player : MonoBehaviour
 
     #region プロパティ
     //重力切り替え設定
-    public bool CanChange { set => _canChange = value; }
+    public int OnFloor { get => _onFloorCnt; set => _onFloorCnt = value; }
     //操作不可能設定
     public bool SetStopInput { set => _canInput = value; }
     #endregion
@@ -72,8 +83,15 @@ public class Player : MonoBehaviour
     public void Move(Vector2 input)
     {
         //操作不可能である または 切り替え不可能である
-        if (!_canInput || !_canChange)
+        if (!_canInput || _onFloorCnt == 0)
         {
+            //一度も処理を行っていない
+            if (!_isOnce)
+            {
+                _isOnce = true;
+                _rigid.ResetForce();
+                Debug.Log("reset");
+            }
             return;
         }
 
@@ -84,6 +102,7 @@ public class Player : MonoBehaviour
         _rigid.AddForce(set * _speed * Time.deltaTime);
 
         _transform.LookAt(_transform.position + set);
+        _isOnce = false;
         //Debug.Log(input);
     }
 
@@ -93,22 +112,31 @@ public class Player : MonoBehaviour
     /// </summary>
     public void ChangeGravity()
     {
+        Debug.Log(GetTo.V3Projection(_rigid.Velocity, _vectorUp).sqrMagnitude);
         //操作不可能である
-        if (!_canInput)
+        if (!_canInput || PERMISSION_VERTICAL_MINMAGNITUDE < Mathf.Abs(GetTo.V3Projection(_rigid.Velocity, _vectorUp).sqrMagnitude))
         {
             return;
         }
 
         //切り替え可能である
-        if (_canChange)
+        if (_onFloorCnt != 0)
         {
             //重力反転する
             _rigid.MyGravity = -_rigid.MyGravity;
             _rigid.ResetForce();
-            _canChange = false;
+            _onFloorCnt--;
             Debug.Log("Change");
         }
 
+    }
+
+    private void OnDrawGizmos()
+    {
+        foreach(ColliderData a in ColliderDataManager.GetColliderToWorld())
+        {
+            Gizmos.DrawWireCube(a.position, a.localScale);
+        }
     }
     #endregion
 }

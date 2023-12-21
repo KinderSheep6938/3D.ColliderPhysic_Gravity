@@ -404,6 +404,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8079659107686796672}
+  - component: {fileID: 610086619861824078}
   m_Layer: 0
   m_Name: ClearTexts
   m_TagString: ClearText
@@ -428,6 +429,18 @@ Transform:
   - {fileID: 1421716697037432433}
   m_Father: {fileID: 4326403016268965127}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &610086619861824078
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5607594508201674707}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ce14900e812dc4841a99e06547b8e9c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &7316084164640946917
 GameObject:
   m_ObjectHideFlags: 0

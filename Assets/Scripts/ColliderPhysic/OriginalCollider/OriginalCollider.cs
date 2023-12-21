@@ -84,7 +84,7 @@ public class OriginalCollider : MonoBehaviour, IColliderInfoAccessible
             return;
         }
         //Collider情報を管理マネージャーに設定
-        ColliderDataManager.SetColliderToWorld(_colliderData);
+        ColliderDataManager.SetColliderToWorld(ref _colliderData);
         
     }
     
@@ -140,6 +140,12 @@ public class OriginalCollider : MonoBehaviour, IColliderInfoAccessible
     /// </summary>
     private void CheckColliderUpdate()
     {
+        //foreach(ColliderData a in ColliderDataManager.GetColliderToWorld())
+        //{
+        //    Debug.Log(a.physic.transform.name);
+        //}
+        //Debug.Log("--------------------------------------------");
+
         //今までに衝突があったか
         _onCollision = CollisionPhysicManager.CheckWaitContains(_physicMaterial);
 
@@ -226,7 +232,7 @@ public class OriginalCollider : MonoBehaviour, IColliderInfoAccessible
     private void OnEnable()
     {
         //Collider情報を管理マネージャーに設定
-        ColliderDataManager.SetColliderToWorld(_colliderData);
+        ColliderDataManager.SetColliderToWorld(ref _colliderData);
     }
 
     /// <summary>

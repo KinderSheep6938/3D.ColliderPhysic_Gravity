@@ -83,17 +83,17 @@ namespace PhysicLibrary.Manager
             //Debug.Log(surfaceVerticalDis + ":" + collisionVerticalDis + ":" + collisionToSurface);
 
             //距離ベクトルがある程度同じである場合は何もしない
-            //if(Mathf.Approximately(surfaceVerticalDis.sqrMagnitude, collisionVerticalDis.sqrMagnitude))
+            //if (Mathf.Approximately(surfaceVerticalDis.sqrMagnitude, collisionVerticalDis.sqrMagnitude))
             //{
             //    return _vectorZero;
             //}
 
             //衝突地点の距離ベクトルが面までの距離ベクトル以上である
-            //if (surfaceVerticalDis.sqrMagnitude < collisionVerticalDis.sqrMagnitude)
+            //if (surfaceVerticalDis.sqrMagnitude + PERMISSION_DISTANCE < collisionVerticalDis.sqrMagnitude)
             //{
             //    //めり込んでいないので、引き戻すようにくっつける
             //    //空気抵抗分を考慮して反発力を算出
-            //    Vector3 pullForce = -collisionToSurface;
+            //    Vector3 pullForce = -collisionToSurface / GetTo.Half;
             //    return pullForce;
             //}
             //めり込んでいるので、押し出すようにくっつける

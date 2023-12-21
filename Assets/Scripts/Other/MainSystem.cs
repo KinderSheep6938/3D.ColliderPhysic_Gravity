@@ -67,10 +67,12 @@ public class MainSystem : MonoBehaviour, IRetryble
     /// <para>FadeOutWait</para>
     /// <para>フェードアウト待機後、シーンをロードします</para>
     /// </summary>
-    /// <param name="loadScene">次のシーン</param>
+    /// <param name="loadScene">読み込むシーン</param>
     /// <returns></returns>
-    private IEnumerator FadeOutWait(Scene loadScene)
+    private IEnumerator FadeOutWait(int loadScene)
     {
+        //スローモーション
+        Time.timeScale = SLOW_TIME;
         //アニメーション制御
         _sceneAnim.SetBool("onFadeOut", true);
         _sceneAnim.SetBool("onFadeIn", false);
@@ -79,7 +81,7 @@ public class MainSystem : MonoBehaviour, IRetryble
         yield return new WaitForSeconds(FADEOUT_TIME);
 
         //待機後、次のシーンをロード
-        SceneManager.LoadScene(loadScene.name);
+        SceneManager.LoadScene(loadScene);
     }
 
     /// <summary>
@@ -88,13 +90,8 @@ public class MainSystem : MonoBehaviour, IRetryble
     /// </summary>
     void IRetryble.StageRetry()
     {
-        //プレイヤー操作を不可に
-        FindObjectOfType<Player>().enabled = false;
-        //スローモーション
-        Time.timeScale = SLOW_TIME;
-
         //コルーチンで同じシーンをロード
-        StartCoroutine(FadeOutWait(SceneManager.GetActiveScene()));
+        StartCoroutine(FadeOutWait(SceneManager.GetActiveScene().buildIndex));
     }
 
     /// <summary>
@@ -118,16 +115,12 @@ public class MainSystem : MonoBehaviour, IRetryble
     /// </summary>
     public void NextStage()
     {
-        //プレイヤー操作を不可に
-        FindObjectOfType<Player>().enabled = false;
 
         //現在のシーンのbuildIndexを取得
         int nowIndex = SceneManager.GetActiveScene().buildIndex;
-        //次のシーンを取得
-        Scene next = SceneManager.GetSceneByBuildIndex(nowIndex++);
 
         //コルーチンで次のシーンをロード
-        StartCoroutine(FadeOutWait(next));
+        StartCoroutine(FadeOutWait(nowIndex + 1));
 
     }
     #endregion

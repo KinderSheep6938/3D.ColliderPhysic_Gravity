@@ -43,7 +43,6 @@ namespace ColliderLibrary.Editor
         /// <returns>Collider情報</returns>
         public static ColliderData SetColliderDataByCube(PhysicMaterials target)
         {
-            //返却用
             ColliderData returnData = new();
 
             //アクセスを簡略にする

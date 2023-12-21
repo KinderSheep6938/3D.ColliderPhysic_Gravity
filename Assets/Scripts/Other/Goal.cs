@@ -23,7 +23,7 @@ public class Goal : MonoBehaviour
     //自身のCollider
     private OriginalCollider _collider = default;
     //クリアテキスト
-    private GameObject _clearTextsObj = default;
+    private ViewObj _clearTextsObj = default;
 
     #endregion
 
@@ -41,8 +41,8 @@ public class Goal : MonoBehaviour
         _mSystem = FindObjectOfType<MainSystem>();
         _player = FindObjectOfType<Player>();
         _collider = GetComponent<OriginalCollider>();
-        _clearTextsObj = GameObject.FindGameObjectWithTag("ClearText");
-        _clearTextsObj.SetActive(false);
+        _clearTextsObj = GameObject.FindGameObjectWithTag("ClearText").GetComponent<ViewObj>();
+        _clearTextsObj.SetView(false);
     }
 
     /// <summary>
@@ -78,7 +78,7 @@ public class Goal : MonoBehaviour
         if (_collider.Collision && !_isOnce)
         {
             //クリアテキスト表示
-            _clearTextsObj.SetActive(true);
+            _clearTextsObj.SetView(true);
             //プレイヤーの処理を停止
             _player.SetStopInput = false;
             _isOnce = true;

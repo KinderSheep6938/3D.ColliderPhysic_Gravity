@@ -76,8 +76,11 @@ public class GravityFloor : MonoBehaviour
         bool rangeZ = (-OBJECT_RANGE <= localPos.z && localPos.z <= OBJECT_RANGE);
 
         //横幅の範囲外である
-        if (!rangeX || !rangeZ)
+        if ((!rangeX || !rangeZ) && _isOnce)
         {
+            _player.OnFloor -= 1;
+            _isOnce = false;
+            CheckGravityCanChange();
             return;
         }
         //Debug.Log("in:" + localPos);
@@ -85,14 +88,7 @@ public class GravityFloor : MonoBehaviour
         //引き寄せ距離をローカル化する
         float localGravityDistance = GRAVITY_DISTANCE / _transform.localScale.y;
         //上に乗っている かつ 引き寄せ可能距離である かつ 重力方向がぶつかる方向である
-        if (OBJECT_RANGE <= localPos.y && localPos.y <= OBJECT_RANGE + localGravityDistance)
-        {
-            CheckGravityCanChange();
-            return;
-        }
-
-        //下に乗っている かつ 引き寄せ可能距離である かつ 重力方向がぶつかる方向である
-        if (localPos.y <= -OBJECT_RANGE && -OBJECT_RANGE - localGravityDistance <= localPos.y)
+        if (OBJECT_RANGE <= Mathf.Abs(localPos.y) && Mathf.Abs(localPos.y) <= OBJECT_RANGE + localGravityDistance)
         {
             CheckGravityCanChange();
             return;
@@ -114,8 +110,9 @@ public class GravityFloor : MonoBehaviour
         if (_collider.Collision && !_isOnce)
         {
             //切り替え可能に
-            _player.CanChange = true;
+            _player.OnFloor += 1;
             _isOnce = true;
+            Debug.Log("on");
         }
     }
     #endregion

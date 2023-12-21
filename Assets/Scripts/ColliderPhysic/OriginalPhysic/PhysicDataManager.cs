@@ -18,6 +18,8 @@ namespace PhysicLibrary.DataManager
         #region 変数
         //Physic情報共有用
         private static List<PhysicMaterials> _physicsInWorld = new();
+        //Physic保存ログ
+        private static List<float> _physicSaveLog = new();
         #endregion
 
         #region メソッド
@@ -31,8 +33,8 @@ namespace PhysicLibrary.DataManager
             //既に格納されているか
             if (_physicsInWorld.Contains(target))
             {
-                //格納せず終了
-                return;
+                //既に格納されているデータを削除
+                RemovePhysicToWorld(target);
             }
 
             //格納

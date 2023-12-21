@@ -42,7 +42,7 @@ public class Cannon : MonoBehaviour
         _transform = transform;
 
         //’e¶¬
-        _bullet = Instantiate(_bullet);
+        _bullet = Instantiate(_bullet,_transform.position,Quaternion.identity);
         //’e‚ÌˆÚ“®§ŒäƒNƒ‰ƒX‚ğæ“¾
         _bulletMove = _bullet.GetComponent<MoveObj>();
 

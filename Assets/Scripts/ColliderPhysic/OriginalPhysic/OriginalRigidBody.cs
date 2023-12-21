@@ -17,6 +17,8 @@ public class OriginalRigidBody : MonoBehaviour
     #region 変数
     //最小速度
     private const float PERMISSION_MINMAGUNITYDE = 0.0001f;
+    //最大速度
+    private const float PERMISSION_MAXMAGUNITYDE = 100f;
 
     //基準Vector
     private readonly Vector3 _vectorZero = Vector3.zero;
@@ -61,6 +63,8 @@ public class OriginalRigidBody : MonoBehaviour
     #region プロパティ
     //重力
     public Vector3 MyGravity { get => _physicData.gravity; set => _physicData.gravity = value; }
+    //速度
+    public Vector3 Velocity { get => _physicData.velocity; }
     #endregion
 
     #region メソッド
@@ -175,7 +179,7 @@ public class OriginalRigidBody : MonoBehaviour
         //反発後の力が最低値以下であれば物質にかかる力を消去する
         if (_physicData.force.sqrMagnitude <= PERMISSION_MINMAGUNITYDE)
         {
-            _physicData.force = _vectorZero;
+            ResetForce();
         }
         //反発後の力を速度に反映
         _physicData.velocity = ForceToVelocity(_physicData.force);
@@ -257,10 +261,15 @@ public class OriginalRigidBody : MonoBehaviour
             //面に接するように力を加える
             Vector3 intrusion = PhysicManager.NoForceToCollision(myPhysic, environment);
             //Debug.Log("CollFor :" + intrusion);
-
-            returnForce += intrusion;
+            
+            //この力の強さが異常値以下である
+            if(intrusion.sqrMagnitude <= PERMISSION_MAXMAGUNITYDE)
+            {
+                //Debug.Log("I;" + intrusion);
+                returnForce += intrusion;
+            }
         }
-
+        //Debug.Log("V:" + verticalForce + " H:" + horizontalForce);
         return returnForce; 
     }
 

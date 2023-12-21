@@ -130,7 +130,7 @@ namespace PhysicLibrary.CollisionPhysic
         /// </summary>
         /// <param name="collision">相手の材質</param>
         /// <param name="point">衝突地点</param>
-        /// <param name="velocity">補完速度</param>
+        /// <param name="interpolate">補完速度</param>
         public OtherPhysicData(PhysicMaterials collision, int edgeId, Vector3 point, bool interpolate)
         {
             this.collision = collision;

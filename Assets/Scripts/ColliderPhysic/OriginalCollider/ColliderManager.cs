@@ -230,10 +230,10 @@ namespace ColliderLibrary.Manager
             //•¡”‚ÌÕ“Ë‚ğ“o˜^
             for (int i = 0; i < collisionPhysic.Length; i++)
             {
-                Debug.Log(collisionPhysic[i] + "[" + point[i] + "[" + interpolate);
+                //Debug.Log(collisionPhysic[i] + "[" + point[i] + "[" + interpolate);
                 //“o˜^
                 CollisionPhysicManager.SetCollision(myPhysic, collisionPhysic[i],edgeId[i], point[i], interpolateFlag);
-                Debug.Log("1<<");
+                //Debug.Log("1<<");
             }
             return;
         }

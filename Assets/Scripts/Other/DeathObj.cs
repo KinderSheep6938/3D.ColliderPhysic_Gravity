@@ -55,6 +55,7 @@ public class DeathObj : MonoBehaviour
     /// </summary>
     private void Update()
     {
+        //€–SŒŸ¸
         CheckDeath();
     }
 
