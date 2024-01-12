@@ -751,7 +751,7 @@ MonoBehaviour:
     m_LineSpacing: 1
   m_Text: 'Move - Left Stick
 
-    Jump - East Button
+    GravityChange - East Button
 
     CameraMove - Shoulder'
 --- !u!1 &7316084164640946917
@@ -909,7 +909,7 @@ MonoBehaviour:
     m_LineSpacing: 1
   m_Text: 'Move - Left Stick
 
-    Jump - East Button
+    GravityChange - East Button
 
     CameraMove - Shoulder'
 --- !u!1 &9202275825793054552
