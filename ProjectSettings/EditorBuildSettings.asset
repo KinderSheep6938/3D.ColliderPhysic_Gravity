@@ -9,6 +9,9 @@ EditorBuildSettings:
     path: Assets/Scenes/PreLoad.unity
     guid: 7887ee94c8a0e8b4cadd8b2ea9b6f6c7
   - enabled: 1
+    path: Assets/Scenes/Title.unity
+    guid: 98ef03b5d735fd243b2214edd7e7c581
+  - enabled: 1
     path: Assets/Scenes/Stage1.unity
     guid: f40e70f87b006844fa84f60b5e913011
   - enabled: 1

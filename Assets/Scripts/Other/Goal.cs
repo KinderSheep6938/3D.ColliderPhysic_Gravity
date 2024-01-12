@@ -13,8 +13,12 @@ using UnityEngine.InputSystem;
 public class Goal : MonoBehaviour
 {
     #region 変数
+    //各テキストのオブジェクトタグ
+    private const string CLEARTEXT_OBJECTTAG = "ClearText";
+    private const string MANUALTEXT_OBJECTTAG = "ManualText";
+
     //一度処理制御
-    private bool _isOnce = default;
+    private bool _isPlay = default;
 
     //メインシステム
     private MainSystem _mSystem = default;
@@ -24,6 +28,8 @@ public class Goal : MonoBehaviour
     private OriginalCollider _collider = default;
     //クリアテキスト
     private ViewObj _clearTextsObj = default;
+    //操作方法テキスト
+    private ViewObj _manualTextsObj = default;
 
     #endregion
 
@@ -41,7 +47,8 @@ public class Goal : MonoBehaviour
         _mSystem = FindObjectOfType<MainSystem>();
         _player = FindObjectOfType<Player>();
         _collider = GetComponent<OriginalCollider>();
-        _clearTextsObj = GameObject.FindGameObjectWithTag("ClearText").GetComponent<ViewObj>();
+        _clearTextsObj = GameObject.FindGameObjectWithTag(CLEARTEXT_OBJECTTAG).GetComponent<ViewObj>();
+        _manualTextsObj = GameObject.FindGameObjectWithTag(MANUALTEXT_OBJECTTAG).GetComponent<ViewObj>();
         _clearTextsObj.SetView(false);
     }
 
@@ -69,19 +76,20 @@ public class Goal : MonoBehaviour
     private void CheckGoal()
     {
         //既に処理を行っている
-        if (_isOnce)
+        if (_isPlay)
         {
             return;
         }
 
         //衝突判定があるか かつ 一度も処理を行っていない
-        if (_collider.Collision && !_isOnce)
+        if (_collider.Collision && !_isPlay)
         {
-            //クリアテキスト表示
+            //テキスト表示処理
             _clearTextsObj.SetView(true);
+            _manualTextsObj.SetView(false);
             //プレイヤーの処理を停止
             _player.SetStopInput = false;
-            _isOnce = true;
+            _isPlay = true;
         }
     }
 
@@ -92,10 +100,13 @@ public class Goal : MonoBehaviour
     public void OnNextStage(InputAction.CallbackContext context)
     {
         //ボタンが押された かつ 既にゴール判定処理を行っている
-        if (context.performed && _isOnce)
+        if (context.performed && _isPlay)
         {
             //次のシーンへ
             _mSystem.NextStage();
+            //テキスト表示処理
+            _clearTextsObj.SetView(false);
+            _manualTextsObj.SetView(true);
         }
     }
     #endregion

@@ -15630,6 +15630,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 59fd5958ba134c64991e00c3e7917b1b, type: 3}
+--- !u!114 &1228339773 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8465645458023125723, guid: 59fd5958ba134c64991e00c3e7917b1b, type: 3}
+  m_PrefabInstance: {fileID: 1228339772}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f826338b59d5c4c4b80b4d19c2ab87bf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &1245923202
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -31123,7 +31134,7 @@ PrefabInstance:
     - target: {fileID: 4001558101964948574, guid: 4380403e9d7136c488bc02c23601bbfb, type: 3}
       propertyPath: m_ActionEvents.Array.data[11].m_PersistentCalls.m_Calls.Array.data[1].m_Target
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 1228339773}
     - target: {fileID: 4001558101964948574, guid: 4380403e9d7136c488bc02c23601bbfb, type: 3}
       propertyPath: m_ActionEvents.Array.data[11].m_PersistentCalls.m_Calls.Array.data[1].m_CallState
       value: 2

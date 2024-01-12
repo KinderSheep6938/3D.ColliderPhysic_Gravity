@@ -29,7 +29,7 @@ public class Player : MonoBehaviour
     //プレイヤーの操作可能フラグ
     private bool _canInput = true;
     //一度処理制御
-    private bool _isOnce = false;
+    private bool _isPlay = false;
    
     //カメラのTransform
     private Transform _cameraObj = default;
@@ -54,9 +54,18 @@ public class Player : MonoBehaviour
     private void Awake()
     {
         //初期化
-        _cameraObj = FindObjectOfType<CameraCtrl>().transform;
         _transform = transform;
         _rigid = GetComponent<OriginalRigidBody>();
+
+        //カメラ処理
+        CameraCtrl camera = FindObjectOfType<CameraCtrl>();
+        //カメラ処理が設定されている
+        if (camera)
+        {
+            //カメラのTransformを取得
+            _cameraObj = FindObjectOfType<CameraCtrl>().transform;
+        }
+
     }
 
     /// <summary>
@@ -86,23 +95,23 @@ public class Player : MonoBehaviour
         if (!_canInput || _onFloorCnt == 0)
         {
             //一度も処理を行っていない
-            if (!_isOnce)
+            if (!_isPlay)
             {
-                _isOnce = true;
+                _isPlay = true;
                 _rigid.ResetForce();
                 Debug.Log("reset");
             }
             return;
         }
 
-        //入力方向
-        Vector3 set = _cameraObj.right * input.x + _cameraObj.forward * -input.y;
+        //カメラの向きから各方向の移動量を取得
+        Vector3 set = _cameraObj.right * input.x + _cameraObj.forward * input.y;
 
         //移動実行
         _rigid.AddForce(set * _speed * Time.deltaTime);
-
+        //キャラを移動方向に向ける
         _transform.LookAt(_transform.position + set);
-        _isOnce = false;
+        _isPlay = false;
         //Debug.Log(input);
     }
 
@@ -112,7 +121,7 @@ public class Player : MonoBehaviour
     /// </summary>
     public void ChangeGravity()
     {
-        Debug.Log(GetTo.V3Projection(_rigid.Velocity, _vectorUp).sqrMagnitude);
+        //Debug.Log(GetTo.V3Projection(_rigid.Velocity, _vectorUp).sqrMagnitude);
         //操作不可能である
         if (!_canInput || PERMISSION_VERTICAL_MINMAGNITUDE < Mathf.Abs(GetTo.V3Projection(_rigid.Velocity, _vectorUp).sqrMagnitude))
         {
@@ -125,7 +134,6 @@ public class Player : MonoBehaviour
             //重力反転する
             _rigid.MyGravity = -_rigid.MyGravity;
             _rigid.ResetForce();
-            _onFloorCnt--;
             Debug.Log("Change");
         }
 

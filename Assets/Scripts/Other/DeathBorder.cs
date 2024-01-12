@@ -16,7 +16,7 @@ public class DeathBorder : MonoBehaviour
     private readonly Vector3 _vectorUp = Vector3.up;
 
     //一度処理制御
-    private bool _isOnce = false;
+    private bool _isPlay = false;
 
     //最高高度、最小高度
     [SerializeField]
@@ -74,7 +74,7 @@ public class DeathBorder : MonoBehaviour
     private void CheckDeath()
     {
         //既に処理を行っている
-        if (_isOnce)
+        if (_isPlay)
         {
             return;
         }
@@ -84,7 +84,7 @@ public class DeathBorder : MonoBehaviour
         {
             //シーン読み込み
             _retrySct.StageRetry();
-            _isOnce = true;
+            _isPlay = true;
         }
     }
 

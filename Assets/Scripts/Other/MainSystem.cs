@@ -12,17 +12,28 @@ using UnityEngine.SceneManagement;
 public class MainSystem : MonoBehaviour, IRetryble
 {
     #region 変数
+    //タグまたはシーン名
+    private const string SCENECHANGER_TAG_NAME = "SceneChanger";
+    private const string TITLESCENE_NAME = "Title";
+    private const string ANIMATION_FADEOUT = "onFadeOut";
+    private const string ANIMATION_FADEIN = "onFadeIn";
     //スローモーション
     private const float SLOW_TIME = 0.2f;
     private const float NORMAL_TIME = 1.0f;
     //フェードアウトの所要時間
     private const float FADEOUT_TIME = 1.0f * SLOW_TIME;
 
+    //コルーチン待機時間処理
+    readonly WaitForSeconds _wait = new WaitForSeconds(FADEOUT_TIME);
+
+    //プレイ可能なステージ数
+    [SerializeField]
+    private int _playableStage = 0;
+    //タイトルシーンのbuildインデックス
+    private int _titleIndex = 0;
+
     //シーン切り替えのアニメーター
     private Animator _sceneAnim = default;
-    
-
-    
     #endregion
 
     #region プロパティ
@@ -39,28 +50,24 @@ public class MainSystem : MonoBehaviour, IRetryble
         DontDestroyOnLoad(gameObject);
 
         //初期化
-        _sceneAnim = GameObject.FindGameObjectWithTag("SceneChanger").GetComponent<Animator>();
+        _sceneAnim = GameObject.FindGameObjectWithTag(SCENECHANGER_TAG_NAME).GetComponent<Animator>();
+
+        //タイトルシーンのインデックスを取得
+        _titleIndex = (SceneManager.sceneCountInBuildSettings - 1) - _playableStage;
 
         //シーン切り替え後に処理を実行
         SceneManager.activeSceneChanged += ActiveSceneChanged;
 
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+        //タイトル読み込み
+        SceneManager.LoadScene(TITLESCENE_NAME);
     }
 
-    /// <summary>
-    /// 更新前処理
-    /// </summary>
-    private void Start()
-    {
-
-    }
-
-    /// <summary>
-    /// 更新処理
-    /// </summary>
     private void Update()
     {
-
+        if (Input.GetKeyDown(KeyCode.Return))
+        {
+            NextStage();
+        }
     }
 
     /// <summary>
@@ -71,15 +78,16 @@ public class MainSystem : MonoBehaviour, IRetryble
     /// <returns></returns>
     private IEnumerator FadeOutWait(int loadScene)
     {
+        //Debug.Log(loadScene);
         //スローモーション
         Time.timeScale = SLOW_TIME;
         //アニメーション制御
-        _sceneAnim.SetBool("onFadeOut", true);
-        _sceneAnim.SetBool("onFadeIn", false);
+        AnimationFade(false);
 
         //アニメーション終了まで待機
-        yield return new WaitForSeconds(FADEOUT_TIME);
+        yield return _wait;
 
+        //Debug.Log(loadScene);
         //待機後、次のシーンをロード
         SceneManager.LoadScene(loadScene);
     }
@@ -105,8 +113,7 @@ public class MainSystem : MonoBehaviour, IRetryble
         //通常再生
         Time.timeScale = NORMAL_TIME;
         //アニメーション制御
-        _sceneAnim.SetBool("onFadeOut", false);
-        _sceneAnim.SetBool("onFadeIn", true);
+        AnimationFade(true);
     }
 
     /// <summary>
@@ -115,13 +122,42 @@ public class MainSystem : MonoBehaviour, IRetryble
     /// </summary>
     public void NextStage()
     {
-
         //現在のシーンのbuildIndexを取得
         int nowIndex = SceneManager.GetActiveScene().buildIndex;
+        //次のシーンを設定
+        nowIndex++;
 
-        //コルーチンで次のシーンをロード
-        StartCoroutine(FadeOutWait(nowIndex + 1));
+        //Debug.Log(SceneManager.GetActiveScene().name + nowIndex);
+        //Debug.Log("t:" + _titleIndex + "|" + (_titleIndex + _playableStage) + " n:" + nowIndex);
+        //設定されているプレイ可能なステージ数以上である
+        if ((_titleIndex + _playableStage) < nowIndex)
+        {
+            //タイトルに戻す
+            StartCoroutine(FadeOutWait(_titleIndex));
+            return;
+        }
+        //次のシーンをロード
+        StartCoroutine(FadeOutWait(nowIndex));
+    }
 
+    /// <summary>
+    /// <para>AnimationFade</para>
+    /// <para>画面のフェード遷移を制御します</para>
+    /// </summary>
+    /// <param name="inOut">イン・アウト判定</param>
+    private void AnimationFade(bool inOut)
+    {
+        //フェードインか
+        if (inOut)
+        {
+            _sceneAnim.SetBool(ANIMATION_FADEOUT, false);
+            _sceneAnim.SetBool(ANIMATION_FADEIN, true);
+            return;
+        }
+
+        //フェードアウト
+        _sceneAnim.SetBool(ANIMATION_FADEOUT, true);
+        _sceneAnim.SetBool(ANIMATION_FADEIN, false);
     }
     #endregion
 }

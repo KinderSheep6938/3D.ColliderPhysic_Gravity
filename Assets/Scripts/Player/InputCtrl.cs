@@ -41,6 +41,13 @@ public class InputCtrl : MonoBehaviour
     /// </summary>
     private void Update()
     {
+        //プレイヤー処理を取得していない
+        if (!_player)
+        {
+            return;
+        }
+
+        //出力処理
         Output();
     }
 

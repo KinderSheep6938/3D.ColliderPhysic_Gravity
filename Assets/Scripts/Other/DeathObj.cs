@@ -12,7 +12,7 @@ public class DeathObj : MonoBehaviour
 {
     #region 変数
     //一度処理判定
-    private bool _isOnce = false;
+    private bool _isPlay = false;
     
     //自身のCollider
     private OriginalCollider _collider = default;
@@ -66,17 +66,17 @@ public class DeathObj : MonoBehaviour
     private void CheckDeath()
     {
         //既に処理を行っている
-        if (_isOnce)
+        if (_isPlay)
         {
             return;
         }
 
         //衝突判定がある かつ 一度も処理を行っていない
-        if (_collider.Collision && !_isOnce)
+        if (_collider.Collision && !_isPlay)
         {
             //シーン読み込み
             _retrySct.StageRetry();
-            _isOnce = true;
+            _isPlay = true;
         }
 
     }
