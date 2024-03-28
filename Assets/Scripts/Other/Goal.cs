@@ -30,11 +30,8 @@ public class Goal : MonoBehaviour
     private ViewObj _clearTextsObj = default;
     //操作方法テキスト
     private ViewObj _manualTextsObj = default;
-
-    #endregion
-
-    #region プロパティ
-
+    //効果音再生クラス
+    private SoundPlayer _se = default;
     #endregion
 
     #region メソッド
@@ -47,17 +44,10 @@ public class Goal : MonoBehaviour
         _mSystem = FindObjectOfType<MainSystem>();
         _player = FindObjectOfType<Player>();
         _collider = GetComponent<OriginalCollider>();
+        _se = GetComponent<SoundPlayer>();
         _clearTextsObj = GameObject.FindGameObjectWithTag(CLEARTEXT_OBJECTTAG).GetComponent<ViewObj>();
         _manualTextsObj = GameObject.FindGameObjectWithTag(MANUALTEXT_OBJECTTAG).GetComponent<ViewObj>();
         _clearTextsObj.SetView(false);
-    }
-
-    /// <summary>
-    /// 更新前処理
-    /// </summary>
-    private void Start()
-    {
-
     }
 
     /// <summary>
@@ -90,6 +80,7 @@ public class Goal : MonoBehaviour
             //プレイヤーの処理を停止
             _player.SetStopInput = false;
             _isPlay = true;
+            _se.Play();
         }
     }
 

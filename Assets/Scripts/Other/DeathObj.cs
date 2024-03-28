@@ -18,6 +18,8 @@ public class DeathObj : MonoBehaviour
     private OriginalCollider _collider = default;
     //MainSystemのリトライ機構
     private IRetryble _retrySct = default;
+    //効果音再生クラス
+    private SoundPlayer _se = default;
     
     #endregion
 
@@ -33,6 +35,7 @@ public class DeathObj : MonoBehaviour
     {
         //初期化
         _collider = GetComponent<OriginalCollider>();
+        _se = GetComponent<SoundPlayer>();
         
         //メインシステムが存在するか
         if (!FindObjectOfType<MainSystem>())
@@ -40,14 +43,6 @@ public class DeathObj : MonoBehaviour
             return;
         }
         _retrySct = FindObjectOfType<MainSystem>().GetComponent<IRetryble>();
-    }
-
-    /// <summary>
-    /// 更新前処理
-    /// </summary>
-    private void Start()
-    {
-
     }
 
     /// <summary>
@@ -77,6 +72,7 @@ public class DeathObj : MonoBehaviour
             //シーン読み込み
             _retrySct.StageRetry();
             _isPlay = true;
+            _se.Play();
         }
 
     }

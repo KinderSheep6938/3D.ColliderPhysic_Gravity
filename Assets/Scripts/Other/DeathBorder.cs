@@ -28,11 +28,9 @@ public class DeathBorder : MonoBehaviour
     private Transform _player = default;
     //MainSystemのリトライ機構
     private IRetryble _retrySct = default;
+    //効果音再生クラス
+    private SoundPlayer _se = default;
     
-    #endregion
-
-    #region プロパティ
-
     #endregion
 
     #region メソッド
@@ -43,20 +41,13 @@ public class DeathBorder : MonoBehaviour
     {
         //初期化
         _player = FindObjectOfType<Player>().transform;
+        _se = GetComponent<SoundPlayer>();
 
         if (!FindObjectOfType<MainSystem>())
         {
             return;
         }
         _retrySct = FindObjectOfType<MainSystem>().GetComponent<IRetryble>();
-    }
-
-    /// <summary>
-    /// 更新前処理
-    /// </summary>
-    private void Start()
-    {
-
     }
 
     /// <summary>
@@ -85,6 +76,7 @@ public class DeathBorder : MonoBehaviour
             //シーン読み込み
             _retrySct.StageRetry();
             _isPlay = true;
+            _se.Play();
         }
     }
 

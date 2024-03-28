@@ -37,6 +37,8 @@ public class Player : MonoBehaviour
     private Transform _transform = default;
     //自身のRigidBody
     private OriginalRigidBody _rigid = default;
+    //効果音再生クラス
+    private SoundPlayer _se = default;
 
     #endregion
 
@@ -56,6 +58,7 @@ public class Player : MonoBehaviour
         //初期化
         _transform = transform;
         _rigid = GetComponent<OriginalRigidBody>();
+        _se = GetComponent<SoundPlayer>();
 
         //カメラ処理
         CameraCtrl camera = FindObjectOfType<CameraCtrl>();
@@ -65,22 +68,6 @@ public class Player : MonoBehaviour
             //カメラのTransformを取得
             _cameraObj = FindObjectOfType<CameraCtrl>().transform;
         }
-
-    }
-
-    /// <summary>
-    /// 更新前処理
-    /// </summary>
-    private void Start()
-    {
-
-    }
-
-    /// <summary>
-    /// 更新処理
-    /// </summary>
-    private void Update()
-    {
 
     }
 
@@ -99,7 +86,6 @@ public class Player : MonoBehaviour
             {
                 _isPlay = true;
                 _rigid.ResetForce();
-                Debug.Log("reset");
             }
             return;
         }
@@ -112,7 +98,6 @@ public class Player : MonoBehaviour
         //キャラを移動方向に向ける
         _transform.LookAt(_transform.position + set);
         _isPlay = false;
-        //Debug.Log(input);
     }
 
     /// <summary>
@@ -121,7 +106,6 @@ public class Player : MonoBehaviour
     /// </summary>
     public void ChangeGravity()
     {
-        //Debug.Log(GetTo.V3Projection(_rigid.Velocity, _vectorUp).sqrMagnitude);
         //操作不可能である
         if (!_canInput || PERMISSION_VERTICAL_MINMAGNITUDE < Mathf.Abs(GetTo.V3Projection(_rigid.Velocity, _vectorUp).sqrMagnitude))
         {
@@ -134,7 +118,8 @@ public class Player : MonoBehaviour
             //重力反転する
             _rigid.MyGravity = -_rigid.MyGravity;
             _rigid.ResetForce();
-            Debug.Log("Change");
+            //効果音再生
+            _se.Play();
         }
 
     }
